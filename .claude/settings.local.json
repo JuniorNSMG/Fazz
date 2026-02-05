@@ -12,7 +12,12 @@
       "Bash(git clone:*)",
       "Bash(npm install:*)",
       "Bash(uipro init:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(gh api:*)",
+      "Bash(curl:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }

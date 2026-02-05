@@ -130,6 +130,42 @@ class UIManager {
     this.imageModal?.querySelector('.modal-overlay')?.addEventListener('click', () => {
       this.closeImageModal();
     });
+
+    // Recorrência
+    document.getElementById('btnAddRecurrence')?.addEventListener('click', () => {
+      this.openRecurrenceModal();
+    });
+
+    document.getElementById('btnCloseRecurrenceModal')?.addEventListener('click', () => {
+      this.closeRecurrenceModal();
+    });
+
+    document.getElementById('btnCancelRecurrence')?.addEventListener('click', () => {
+      this.closeRecurrenceModal();
+    });
+
+    document.getElementById('btnSaveRecurrence')?.addEventListener('click', () => {
+      this.saveRecurrence();
+    });
+
+    document.getElementById('btnRemoveRecurrence')?.addEventListener('click', () => {
+      this.removeRecurrence();
+    });
+
+    // Recurrence modal overlay
+    document.getElementById('recurrenceModal')?.querySelector('.modal-overlay')?.addEventListener('click', () => {
+      this.closeRecurrenceModal();
+    });
+
+    // Tipo de recorrência - mostrar/ocultar campos
+    document.getElementById('recurrenceType')?.addEventListener('change', (e) => {
+      this.handleRecurrenceTypeChange(e.target.value);
+    });
+
+    // Tipo de término - mostrar/ocultar campos
+    document.getElementById('recurrenceEndType')?.addEventListener('change', (e) => {
+      this.handleRecurrenceEndTypeChange(e.target.value);
+    });
   }
 
   // Atualizar relógio do header
@@ -406,16 +442,20 @@ class UIManager {
 
   // Abrir Modal de Tarefa
   async openTaskModal(task = null) {
+    this.editingTaskId = task?.id || null;
     this.currentEditingId = task?.id || null;
     this.selectedTags = [];
     this.pendingFiles = [];
     this.currentAttachments = [];
+    this.currentRecurrence = null;
 
     const modalTitle = document.getElementById('modalTitle');
     const taskTitle = document.getElementById('taskTitle');
     const taskDate = document.getElementById('taskDate');
     const taskTime = document.getElementById('taskTime');
     const taskNotes = document.getElementById('taskNotes');
+    const descElement = document.getElementById('recurrenceDescription');
+    const btnText = document.getElementById('recurrenceButtonText');
 
     if (task) {
       modalTitle.textContent = 'Editar Tarefa';
@@ -430,6 +470,15 @@ class UIManager {
 
       // Carregar anexos da tarefa
       await this.loadAttachments(task.id);
+
+      // Carregar recorrência
+      if (task.recurrence && task.recurrence.enabled) {
+        this.currentRecurrence = task.recurrence;
+        this.updateRecurrenceDescription(task.recurrence);
+      } else {
+        if (descElement) descElement.classList.add('hidden');
+        if (btnText) btnText.textContent = 'Adicionar Recorrência';
+      }
     } else {
       modalTitle.textContent = 'Nova Tarefa';
       taskTitle.value = '';
@@ -439,6 +488,10 @@ class UIManager {
 
       // Limpar lista de anexos
       this.renderPendingAttachments();
+
+      // Limpar recorrência
+      if (descElement) descElement.classList.add('hidden');
+      if (btnText) btnText.textContent = 'Adicionar Recorrência';
     }
 
     this.renderAvailableTags();
@@ -450,7 +503,15 @@ class UIManager {
   closeTaskModal() {
     this.taskModal?.classList.remove('active');
     this.currentEditingId = null;
+    this.editingTaskId = null;
+    this.currentRecurrence = null;
     this.taskForm?.reset();
+
+    // Limpar descrição de recorrência
+    const descElement = document.getElementById('recurrenceDescription');
+    const btnText = document.getElementById('recurrenceButtonText');
+    if (descElement) descElement.classList.add('hidden');
+    if (btnText) btnText.textContent = 'Adicionar Recorrência';
   }
 
   // Submeter Formulário de Tarefa
@@ -461,7 +522,8 @@ class UIManager {
       title: document.getElementById('taskTitle').value.trim(),
       date: document.getElementById('taskDate').value,
       time: document.getElementById('taskTime').value || null,
-      notes: document.getElementById('taskNotes').value.trim() || null
+      notes: document.getElementById('taskNotes').value.trim() || null,
+      recurrence: this.currentRecurrence || null
     };
 
     if (!taskData.title || !taskData.date) {
@@ -1028,6 +1090,292 @@ class UIManager {
     if (imagePreview) {
       imagePreview.src = '';
     }
+  }
+
+  // ===== RECORRÊNCIA =====
+
+  openRecurrenceModal() {
+    const modal = document.getElementById('recurrenceModal');
+    if (!modal) return;
+
+    // Se já existe recorrência na tarefa sendo editada, preencher os campos
+    if (this.editingTaskId) {
+      const task = window.tasksManager.getTask(this.editingTaskId);
+      if (task && task.recurrence && task.recurrence.enabled) {
+        this.loadRecurrenceData(task.recurrence);
+        document.getElementById('btnRemoveRecurrence').style.display = 'inline-flex';
+      } else {
+        this.resetRecurrenceForm();
+        document.getElementById('btnRemoveRecurrence').style.display = 'none';
+      }
+    } else {
+      this.resetRecurrenceForm();
+      document.getElementById('btnRemoveRecurrence').style.display = 'none';
+    }
+
+    modal.classList.add('active');
+  }
+
+  closeRecurrenceModal() {
+    const modal = document.getElementById('recurrenceModal');
+    modal?.classList.remove('active');
+  }
+
+  resetRecurrenceForm() {
+    document.getElementById('recurrenceType').value = '';
+    document.getElementById('recurrenceInterval').value = '1';
+    document.getElementById('workdayNumber').value = '1';
+    document.getElementById('recurrenceEndType').value = 'never';
+    document.getElementById('recurrenceEndDate').value = '';
+    document.getElementById('recurrenceEndCount').value = '10';
+
+    // Desmarcar todos os dias da semana
+    const weekdayCheckboxes = document.querySelectorAll('.weekday-option input[type="checkbox"]');
+    weekdayCheckboxes.forEach(cb => cb.checked = false);
+
+    // Ocultar todos os grupos opcionais
+    document.getElementById('intervalGroup').style.display = 'none';
+    document.getElementById('workdayGroup').style.display = 'none';
+    document.getElementById('weekdaysGroup').style.display = 'none';
+    document.getElementById('endDateGroup').style.display = 'none';
+    document.getElementById('endCountGroup').style.display = 'none';
+  }
+
+  loadRecurrenceData(recurrence) {
+    document.getElementById('recurrenceType').value = recurrence.type;
+    this.handleRecurrenceTypeChange(recurrence.type);
+
+    if (recurrence.interval) {
+      document.getElementById('recurrenceInterval').value = recurrence.interval;
+    }
+
+    if (recurrence.workday) {
+      document.getElementById('workdayNumber').value = recurrence.workday;
+    }
+
+    if (recurrence.weekdays && recurrence.weekdays.length > 0) {
+      const weekdayCheckboxes = document.querySelectorAll('.weekday-option input[type="checkbox"]');
+      weekdayCheckboxes.forEach(cb => {
+        cb.checked = recurrence.weekdays.includes(parseInt(cb.value));
+      });
+    }
+
+    // Tipo de término
+    if (recurrence.endDate) {
+      document.getElementById('recurrenceEndType').value = 'date';
+      document.getElementById('recurrenceEndDate').value = recurrence.endDate;
+      this.handleRecurrenceEndTypeChange('date');
+    } else if (recurrence.endCount) {
+      document.getElementById('recurrenceEndType').value = 'count';
+      document.getElementById('recurrenceEndCount').value = recurrence.endCount;
+      this.handleRecurrenceEndTypeChange('count');
+    } else {
+      document.getElementById('recurrenceEndType').value = 'never';
+      this.handleRecurrenceEndTypeChange('never');
+    }
+  }
+
+  handleRecurrenceTypeChange(type) {
+    const intervalGroup = document.getElementById('intervalGroup');
+    const workdayGroup = document.getElementById('workdayGroup');
+    const weekdaysGroup = document.getElementById('weekdaysGroup');
+    const intervalLabel = document.getElementById('intervalLabel');
+
+    // Ocultar todos primeiro
+    intervalGroup.style.display = 'none';
+    workdayGroup.style.display = 'none';
+    weekdaysGroup.style.display = 'none';
+
+    switch (type) {
+      case 'daily':
+        intervalGroup.style.display = 'block';
+        intervalLabel.textContent = 'dia(s)';
+        break;
+      case 'weekly':
+        intervalGroup.style.display = 'block';
+        intervalLabel.textContent = 'semana(s)';
+        break;
+      case 'monthly-date':
+        intervalGroup.style.display = 'block';
+        intervalLabel.textContent = 'mês(es)';
+        break;
+      case 'monthly-weekday':
+        intervalGroup.style.display = 'block';
+        intervalLabel.textContent = 'mês(es)';
+        break;
+      case 'monthly-workday':
+        workdayGroup.style.display = 'block';
+        break;
+      case 'yearly':
+        intervalGroup.style.display = 'block';
+        intervalLabel.textContent = 'ano(s)';
+        break;
+      case 'custom-weekdays':
+        weekdaysGroup.style.display = 'block';
+        break;
+    }
+  }
+
+  handleRecurrenceEndTypeChange(type) {
+    const endDateGroup = document.getElementById('endDateGroup');
+    const endCountGroup = document.getElementById('endCountGroup');
+
+    endDateGroup.style.display = 'none';
+    endCountGroup.style.display = 'none';
+
+    if (type === 'date') {
+      endDateGroup.style.display = 'block';
+    } else if (type === 'count') {
+      endCountGroup.style.display = 'block';
+    }
+  }
+
+  saveRecurrence() {
+    const type = document.getElementById('recurrenceType').value;
+
+    if (!type) {
+      alert('Selecione um tipo de recorrência');
+      return;
+    }
+
+    const recurrence = {
+      enabled: true,
+      type: type
+    };
+
+    // Intervalo (para tipos que usam)
+    if (['daily', 'weekly', 'monthly-date', 'monthly-weekday', 'yearly'].includes(type)) {
+      recurrence.interval = parseInt(document.getElementById('recurrenceInterval').value) || 1;
+    }
+
+    // Dia útil (para monthly-workday)
+    if (type === 'monthly-workday') {
+      recurrence.workday = parseInt(document.getElementById('workdayNumber').value);
+      if (!recurrence.workday || recurrence.workday < 1) {
+        alert('Informe um número válido para o dia útil');
+        return;
+      }
+    }
+
+    // Dias da semana (para custom-weekdays)
+    if (type === 'custom-weekdays') {
+      const selectedWeekdays = [];
+      const weekdayCheckboxes = document.querySelectorAll('.weekday-option input[type="checkbox"]:checked');
+      weekdayCheckboxes.forEach(cb => {
+        selectedWeekdays.push(parseInt(cb.value));
+      });
+
+      if (selectedWeekdays.length === 0) {
+        alert('Selecione pelo menos um dia da semana');
+        return;
+      }
+
+      recurrence.weekdays = selectedWeekdays;
+    }
+
+    // Tipo de término
+    const endType = document.getElementById('recurrenceEndType').value;
+    if (endType === 'date') {
+      const endDate = document.getElementById('recurrenceEndDate').value;
+      if (!endDate) {
+        alert('Informe a data de término');
+        return;
+      }
+      recurrence.endDate = endDate;
+    } else if (endType === 'count') {
+      const endCount = parseInt(document.getElementById('recurrenceEndCount').value);
+      if (!endCount || endCount < 1) {
+        alert('Informe um número válido de ocorrências');
+        return;
+      }
+      recurrence.endCount = endCount;
+      recurrence.currentCount = 0;
+    }
+
+    // Salvar temporariamente (será salvo com a tarefa)
+    this.currentRecurrence = recurrence;
+
+    // Atualizar descrição no formulário
+    this.updateRecurrenceDescription(recurrence);
+
+    // Fechar modal
+    this.closeRecurrenceModal();
+  }
+
+  removeRecurrence() {
+    if (confirm('Deseja remover a recorrência desta tarefa?')) {
+      this.currentRecurrence = null;
+
+      // Limpar descrição
+      const descElement = document.getElementById('recurrenceDescription');
+      const btnText = document.getElementById('recurrenceButtonText');
+      if (descElement) {
+        descElement.classList.add('hidden');
+        descElement.textContent = '';
+      }
+      if (btnText) {
+        btnText.textContent = 'Adicionar Recorrência';
+      }
+
+      this.closeRecurrenceModal();
+    }
+  }
+
+  updateRecurrenceDescription(recurrence) {
+    const descElement = document.getElementById('recurrenceDescription');
+    const btnText = document.getElementById('recurrenceButtonText');
+
+    if (!descElement || !btnText) return;
+
+    let description = '';
+
+    switch (recurrence.type) {
+      case 'daily':
+        description = recurrence.interval === 1
+          ? 'Todos os dias'
+          : `A cada ${recurrence.interval} dias`;
+        break;
+      case 'weekly':
+        description = recurrence.interval === 1
+          ? 'Toda semana'
+          : `A cada ${recurrence.interval} semanas`;
+        break;
+      case 'monthly-date':
+        description = recurrence.interval === 1
+          ? 'Todo mês (mesma data)'
+          : `A cada ${recurrence.interval} meses (mesma data)`;
+        break;
+      case 'monthly-weekday':
+        description = recurrence.interval === 1
+          ? 'Todo mês (mesmo dia da semana)'
+          : `A cada ${recurrence.interval} meses (mesmo dia da semana)`;
+        break;
+      case 'monthly-workday':
+        description = `${recurrence.workday}º dia útil do mês`;
+        break;
+      case 'yearly':
+        description = recurrence.interval === 1
+          ? 'Todo ano'
+          : `A cada ${recurrence.interval} anos`;
+        break;
+      case 'custom-weekdays':
+        const weekdayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const selectedDays = recurrence.weekdays.map(d => weekdayNames[d]).join(', ');
+        description = `Toda(s) ${selectedDays}`;
+        break;
+    }
+
+    // Adicionar informação de término
+    if (recurrence.endDate) {
+      const endDate = new Date(recurrence.endDate + 'T00:00:00');
+      description += ` até ${endDate.toLocaleDateString('pt-BR')}`;
+    } else if (recurrence.endCount) {
+      description += ` (${recurrence.endCount} vezes)`;
+    }
+
+    descElement.textContent = description;
+    descElement.classList.remove('hidden');
+    btnText.textContent = 'Editar Recorrência';
   }
 }
 

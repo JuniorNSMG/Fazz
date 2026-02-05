@@ -1093,6 +1093,46 @@ body {
   display: none;
 }
 
+/* Weekdays Selector */
+.weekdays-selector {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.weekday-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.weekday-option:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.weekday-option input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+  cursor: pointer;
+}
+
+.weekday-option:has(input:checked) {
+  background-color: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
 /* ==========================================
    TAGS
    ========================================== */
