@@ -91,15 +91,27 @@ class TasksManager {
       updated_at: new Date().toISOString()
     };
 
+    console.log('💾 createTask - newTask com recurrence:', newTask.recurrence);
+
     // Se estiver autenticado, salvar no Supabase
     if (window.supabaseClient.isAuthenticated()) {
       const { data, error } = await window.supabaseClient.createTask(newTask);
 
       if (!error && data) {
-        data.tags = []; // Inicializar tags vazio
-        this.tasks.push(data);
+        console.log('💾 createTask - Supabase retornou:', data);
+        console.log('💾 createTask - recurrence do Supabase:', data.recurrence);
+
+        // Garantir que recurrence não seja perdido
+        const finalTask = {
+          ...data,
+          tags: [], // Inicializar tags vazio
+          recurrence: data.recurrence || newTask.recurrence // Preservar se Supabase não retornou
+        };
+
+        console.log('💾 createTask - tarefa final:', finalTask);
+        this.tasks.push(finalTask);
         this.saveTasks();
-        return data;
+        return finalTask;
       }
     }
 
@@ -441,7 +453,7 @@ class TasksManager {
       date: nextDate,
       time: completedTask.time,
       notes: completedTask.notes,
-      tags: completedTask.tags,
+      tags: Array.isArray(completedTask.tags) ? completedTask.tags : [],
       recurrence: {
         ...completedTask.recurrence,
         currentOccurrence: (completedTask.recurrence.currentOccurrence || 0) + 1
