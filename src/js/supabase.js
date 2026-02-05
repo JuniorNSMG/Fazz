@@ -162,6 +162,7 @@ class SupabaseClient {
         time: task.time || null,
         notes: task.notes || null,
         completed: task.completed || false,
+        recurrence: task.recurrence || null, // Adicionar recurrence
         user_id: this.user.id
       };
 
@@ -174,7 +175,7 @@ class SupabaseClient {
       return { data, error };
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
-      return { data: null, error };
+      return { data, null, error };
     }
   }
 

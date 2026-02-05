@@ -20,7 +20,8 @@
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
       "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__list_projects",
-      "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__apply_migration"
+      "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__apply_migration",
+      "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__execute_sql"
     ]
   }
 }
