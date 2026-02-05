@@ -1112,7 +1112,7 @@ class UIManager {
 
     // Se já existe recorrência na tarefa sendo editada, preencher os campos
     if (this.editingTaskId) {
-      const task = window.tasksManager.getTask(this.editingTaskId);
+      const task = window.tasksManager.getTaskById(this.editingTaskId);
       if (task && task.recurrence && task.recurrence.enabled) {
         this.loadRecurrenceData(task.recurrence);
         document.getElementById('btnRemoveRecurrence').style.display = 'inline-flex';
