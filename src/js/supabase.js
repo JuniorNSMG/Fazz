@@ -144,7 +144,7 @@ class SupabaseClient {
         title: task.title,
         date: task.date,
         time: task.time || null,
-        project: task.project || 'inbox',
+        notes: task.notes || null,
         completed: task.completed || false,
         user_id: this.user.id
       };
