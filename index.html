@@ -215,12 +215,12 @@
         </div>
     </div>
 
-    <!-- Modal: Criar Tag -->
+    <!-- Modal: Selecionar Tags -->
     <div class="modal" id="tagModal">
         <div class="modal-overlay"></div>
-        <div class="modal-content tag-modal">
+        <div class="modal-content tag-selector-modal">
             <div class="modal-header">
-                <h3>Nova Tag</h3>
+                <h3>Selecionar Tags</h3>
                 <button class="btn-close" id="btnCloseTagModal" aria-label="Fechar">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -228,29 +228,55 @@
                     </svg>
                 </button>
             </div>
-            <form class="tag-form" id="tagForm">
-                <div class="form-group">
-                    <label for="tagName">Nome da Tag</label>
-                    <input type="text" id="tagName" name="name" required placeholder="Ex: Urgente, Trabalho..." autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Cor</label>
-                    <div class="color-picker" id="colorPicker">
-                        <button type="button" class="color-option" data-color="blue" style="background-color: #E3F2FD;"></button>
-                        <button type="button" class="color-option" data-color="green" style="background-color: #E8F5E9;"></button>
-                        <button type="button" class="color-option" data-color="orange" style="background-color: #FFF3E0;"></button>
-                        <button type="button" class="color-option" data-color="purple" style="background-color: #F3E5F5;"></button>
-                        <button type="button" class="color-option" data-color="pink" style="background-color: #FCE4EC;"></button>
-                        <button type="button" class="color-option" data-color="teal" style="background-color: #E0F2F1;"></button>
-                        <button type="button" class="color-option" data-color="yellow" style="background-color: #FFFDE7;"></button>
-                        <button type="button" class="color-option" data-color="red" style="background-color: #FFEBEE;"></button>
+
+            <div class="tag-selector-content">
+                <!-- Lista de tags existentes -->
+                <div class="existing-tags-section">
+                    <div class="existing-tags-list" id="existingTagsList">
+                        <!-- Tags serão inseridas aqui -->
+                    </div>
+                    <div class="no-tags-message" id="noTagsMessage" style="display: none;">
+                        <p>Nenhuma tag criada ainda. Crie sua primeira tag abaixo!</p>
                     </div>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnCancelTag">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveTag">Criar Tag</button>
+
+                <!-- Divisor -->
+                <div class="tag-divider"></div>
+
+                <!-- Formulário de nova tag (compacto) -->
+                <div class="new-tag-section">
+                    <button type="button" class="btn-toggle-new-tag" id="btnToggleNewTag">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Criar Nova Tag
+                    </button>
+
+                    <form class="tag-form hidden" id="tagForm">
+                        <div class="form-group">
+                            <input type="text" id="tagName" name="name" required placeholder="Nome da tag..." autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-small">Escolha uma cor:</label>
+                            <div class="color-picker-compact" id="colorPicker">
+                                <button type="button" class="color-option-small active" data-color="blue"></button>
+                                <button type="button" class="color-option-small" data-color="green"></button>
+                                <button type="button" class="color-option-small" data-color="orange"></button>
+                                <button type="button" class="color-option-small" data-color="purple"></button>
+                                <button type="button" class="color-option-small" data-color="pink"></button>
+                                <button type="button" class="color-option-small" data-color="teal"></button>
+                                <button type="button" class="color-option-small" data-color="yellow"></button>
+                                <button type="button" class="color-option-small" data-color="red"></button>
+                            </div>
+                        </div>
+                        <div class="form-actions-inline">
+                            <button type="button" class="btn btn-text" id="btnCancelNewTag">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm" id="btnSaveTag">Criar</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 

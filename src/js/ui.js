@@ -77,12 +77,22 @@ class UIManager {
       this.closeTagModal();
     });
 
+    // Toggle new tag form
+    document.getElementById('btnToggleNewTag')?.addEventListener('click', () => {
+      const form = document.getElementById('tagForm');
+      const btn = document.getElementById('btnToggleNewTag');
+      if (form && btn) {
+        form.classList.toggle('hidden');
+        btn.textContent = form.classList.contains('hidden') ? 'Criar Nova Tag' : 'Cancelar';
+      }
+    });
+
     document.getElementById('tagForm')?.addEventListener('submit', (e) => {
       this.handleTagSubmit(e);
     });
 
-    // Color picker
-    const colorOptions = document.querySelectorAll('.color-option');
+    // Color picker (compact version)
+    const colorOptions = document.querySelectorAll('.color-option-small');
     colorOptions.forEach(option => {
       option.addEventListener('click', () => {
         colorOptions.forEach(o => o.classList.remove('active'));
@@ -518,17 +528,77 @@ class UIManager {
     this.selectedColor = 'blue';
     document.getElementById('tagName').value = '';
 
+    // Renderizar tags existentes para seleção
+    this.renderExistingTagsSelector();
+
     // Resetar seleção de cores
-    const colorOptions = document.querySelectorAll('.color-option');
+    const colorOptions = document.querySelectorAll('.color-option-small');
     colorOptions.forEach(o => o.classList.remove('active'));
     colorOptions[0]?.classList.add('active');
 
+    // Esconder form de criar nova tag
+    const form = document.getElementById('tagForm');
+    const btn = document.getElementById('btnToggleNewTag');
+    if (form && btn) {
+      form.classList.add('hidden');
+      btn.textContent = 'Criar Nova Tag';
+    }
+
     this.tagModal?.classList.add('active');
-    document.getElementById('tagName')?.focus();
   }
 
   closeTagModal() {
     this.tagModal?.classList.remove('active');
+  }
+
+  renderExistingTagsSelector() {
+    const existingTagsList = document.getElementById('existingTagsList');
+    if (!existingTagsList) return;
+
+    existingTagsList.innerHTML = '';
+
+    if (window.tagsManager.tags.length === 0) {
+      existingTagsList.innerHTML = `
+        <p style="grid-column: 1 / -1; text-align: center; color: var(--color-text-secondary); padding: var(--spacing-lg);">
+          Nenhuma tag criada ainda. Crie sua primeira tag abaixo!
+        </p>
+      `;
+      return;
+    }
+
+    window.tagsManager.tags.forEach(tag => {
+      const isSelected = this.selectedTags.includes(tag.id);
+
+      const tagItem = document.createElement('div');
+      tagItem.className = `tag-selector-item tag-${tag.color} ${isSelected ? 'selected' : ''}`;
+      tagItem.dataset.tagId = tag.id;
+
+      tagItem.innerHTML = `
+        <div class="tag-selector-name">${tag.name}</div>
+      `;
+
+      tagItem.addEventListener('click', () => {
+        this.toggleTagSelection(tag.id);
+      });
+
+      existingTagsList.appendChild(tagItem);
+    });
+  }
+
+  toggleTagSelection(tagId) {
+    const index = this.selectedTags.indexOf(tagId);
+
+    if (index > -1) {
+      // Remover tag
+      this.selectedTags.splice(index, 1);
+    } else {
+      // Adicionar tag
+      this.selectedTags.push(tagId);
+    }
+
+    // Re-renderizar seletor e lista de tags selecionadas
+    this.renderExistingTagsSelector();
+    this.renderAvailableTags();
   }
 
   async handleTagSubmit(e) {
@@ -549,7 +619,18 @@ class UIManager {
         this.selectedTags.push(existing.id);
         this.renderAvailableTags();
       }
-      this.closeTagModal();
+
+      // Limpar form e esconder
+      document.getElementById('tagName').value = '';
+      const form = document.getElementById('tagForm');
+      const btn = document.getElementById('btnToggleNewTag');
+      if (form && btn) {
+        form.classList.add('hidden');
+        btn.textContent = 'Criar Nova Tag';
+      }
+
+      // Re-renderizar o seletor
+      this.renderExistingTagsSelector();
       return;
     }
 
@@ -558,9 +639,19 @@ class UIManager {
     if (newTag) {
       this.selectedTags.push(newTag.id);
       this.renderAvailableTags();
-    }
 
-    this.closeTagModal();
+      // Limpar form e esconder
+      document.getElementById('tagName').value = '';
+      const form = document.getElementById('tagForm');
+      const btn = document.getElementById('btnToggleNewTag');
+      if (form && btn) {
+        form.classList.add('hidden');
+        btn.textContent = 'Criar Nova Tag';
+      }
+
+      // Re-renderizar o seletor para mostrar a nova tag
+      this.renderExistingTagsSelector();
+    }
   }
 }
 
