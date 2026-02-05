@@ -10,33 +10,14 @@ class TasksManager {
 
   // Converter string de data (YYYY-MM-DD) para Date local (corrigir problema de fuso horário)
   parseLocalDate(dateStr) {
-    console.log('🔍 parseLocalDate - Input:', dateStr, 'Type:', typeof dateStr);
-
-    if (!dateStr) {
-      console.log('⚠️ parseLocalDate - dateStr vazio, retornando new Date()');
-      return new Date();
-    }
+    if (!dateStr) return new Date();
 
     // Se já for um objeto Date, retornar
-    if (dateStr instanceof Date) {
-      console.log('✓ parseLocalDate - Já é Date:', dateStr);
-      return dateStr;
-    }
+    if (dateStr instanceof Date) return dateStr;
 
     // Parse manual para evitar conversão UTC
     const [year, month, day] = dateStr.split('-').map(num => parseInt(num, 10));
-    const localDate = new Date(year, month - 1, day);
-
-    console.log('📅 parseLocalDate - Parsed:', {
-      input: dateStr,
-      year, month, day,
-      result: localDate.toISOString(),
-      localString: localDate.toLocaleDateString('pt-BR'),
-      dayOfMonth: localDate.getDate(),
-      monthIndex: localDate.getMonth()
-    });
-
-    return localDate;
+    return new Date(year, month - 1, day);
   }
 
   // Obter data de hoje no formato YYYY-MM-DD (fuso horário local)
@@ -45,40 +26,21 @@ class TasksManager {
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
-    const result = `${year}-${month}-${day}`;
-
-    console.log('📆 getTodayString:', {
-      now: today.toISOString(),
-      localDate: today.toLocaleDateString('pt-BR'),
-      year, month, day,
-      result
-    });
-
-    return result;
+    return `${year}-${month}-${day}`;
   }
 
   // Carregar tarefas (do Supabase ou localStorage)
   async loadTasks() {
-    console.log('📂 loadTasks - Iniciando carregamento');
-
     // Se estiver autenticado no Supabase, buscar de lá
     if (window.supabaseClient.isAuthenticated()) {
       const { data, error } = await window.supabaseClient.fetchTasks();
 
       if (!error && data) {
-        console.log('✓ loadTasks - Carregado do Supabase:', data.length, 'tarefas');
+        // Inicializar tags e anexos como arrays vazios (serão carregados sob demanda)
         data.forEach(task => {
-          console.log('  - Tarefa:', task.title, 'Data:', task.date);
+          task.tags = task.tags || [];
+          task.attachments = task.attachments || [];
         });
-
-        // Carregar tags e anexos de cada tarefa
-        for (const task of data) {
-          const tags = await window.tagsManager.getTaskTags(task.id);
-          task.tags = tags;
-
-          const attachments = await window.attachmentsManager.getTaskAttachments(task.id);
-          task.attachments = attachments;
-        }
 
         this.tasks = data;
         this.saveTasks(); // Salvar localmente como backup
@@ -91,10 +53,6 @@ class TasksManager {
     if (stored) {
       try {
         this.tasks = JSON.parse(stored);
-        console.log('✓ loadTasks - Carregado do localStorage:', this.tasks.length, 'tarefas');
-        this.tasks.forEach(task => {
-          console.log('  - Tarefa:', task.title, 'Data:', task.date);
-        });
       } catch (e) {
         console.error('Erro ao carregar tarefas do localStorage:', e);
         this.tasks = [];
@@ -115,8 +73,6 @@ class TasksManager {
 
   // Criar nova tarefa
   async createTask(taskData) {
-    console.log('✨ createTask - Input taskData:', taskData);
-
     const newTask = {
       id: this.generateId(),
       title: taskData.title,
@@ -129,14 +85,11 @@ class TasksManager {
       updated_at: new Date().toISOString()
     };
 
-    console.log('💾 createTask - newTask criada:', newTask);
-
     // Se estiver autenticado, salvar no Supabase
     if (window.supabaseClient.isAuthenticated()) {
       const { data, error } = await window.supabaseClient.createTask(newTask);
 
       if (!error && data) {
-        console.log('✓ createTask - Salvo no Supabase:', data);
         data.tags = []; // Inicializar tags vazio
         this.tasks.push(data);
         this.saveTasks();
@@ -145,7 +98,6 @@ class TasksManager {
     }
 
     // Caso contrário, salvar localmente
-    console.log('💾 createTask - Salvando localmente');
     this.tasks.push(newTask);
     this.saveTasks();
     return newTask;
@@ -210,12 +162,6 @@ class TasksManager {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    console.log('📋 getGroupedTasks - Hoje:', {
-      today: today.toISOString(),
-      localDate: today.toLocaleDateString('pt-BR'),
-      timestamp: today.getTime()
-    });
-
     const groups = {
       overdue: [],
       today: [],
@@ -230,26 +176,9 @@ class TasksManager {
         return;
       }
 
-      console.log('🔄 getGroupedTasks - Processando tarefa:', {
-        id: task.id,
-        title: task.title,
-        dateString: task.date
-      });
-
       // Usar parseLocalDate para evitar problema de fuso horário
       const taskDate = this.parseLocalDate(task.date);
       taskDate.setHours(0, 0, 0, 0);
-
-      console.log('⏰ getGroupedTasks - Comparação:', {
-        taskDate: taskDate.toISOString(),
-        taskLocalDate: taskDate.toLocaleDateString('pt-BR'),
-        taskTimestamp: taskDate.getTime(),
-        todayTimestamp: today.getTime(),
-        diff: taskDate.getTime() - today.getTime(),
-        isEqual: taskDate.getTime() === today.getTime(),
-        isLess: taskDate < today,
-        category: taskDate < today ? 'overdue' : (taskDate.getTime() === today.getTime() ? 'today' : 'upcoming')
-      });
 
       // Atrasadas
       if (taskDate < today) {
@@ -322,8 +251,6 @@ class TasksManager {
 
   // Formatar data para exibição
   formatDate(dateStr) {
-    console.log('🎨 formatDate - Input:', dateStr);
-
     // Usar parseLocalDate para evitar problema de fuso horário
     const date = this.parseLocalDate(dateStr);
     const today = new Date();
@@ -335,27 +262,14 @@ class TasksManager {
     today.setHours(0, 0, 0, 0);
     tomorrow.setHours(0, 0, 0, 0);
 
-    console.log('🎨 formatDate - Comparação:', {
-      dateStr,
-      date: date.toLocaleDateString('pt-BR'),
-      today: today.toLocaleDateString('pt-BR'),
-      tomorrow: tomorrow.toLocaleDateString('pt-BR'),
-      isToday: date.getTime() === today.getTime(),
-      isTomorrow: date.getTime() === tomorrow.getTime()
-    });
-
     if (date.getTime() === today.getTime()) {
-      console.log('✓ formatDate - Retornando "Hoje"');
       return 'Hoje';
     } else if (date.getTime() === tomorrow.getTime()) {
-      console.log('✓ formatDate - Retornando "Amanhã"');
       return 'Amanhã';
     }
 
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    const formatted = date.toLocaleDateString('pt-BR', options);
-    console.log('✓ formatDate - Retornando formatado:', formatted);
-    return formatted;
+    return date.toLocaleDateString('pt-BR', options);
   }
 
   // Formatar data para título de seção
