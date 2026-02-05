@@ -123,12 +123,28 @@ class SupabaseClient {
     try {
       const { data, error } = await this.client
         .from('tasks')
-        .select('*')
+        .select(`
+          *,
+          task_tags(
+            tag_id,
+            tags(*)
+          )
+        `)
         .eq('user_id', this.user.id)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      return { data: data || [], error };
+      // Processar dados para formato mais simples
+      const processedData = data?.map(task => {
+        // Extrair tags do relacionamento task_tags
+        const tags = task.task_tags?.map(tt => tt.tags).filter(Boolean) || [];
+
+        // Remover task_tags e adicionar tags diretamente
+        const { task_tags, ...taskData } = task;
+        return { ...taskData, tags };
+      }) || [];
+
+      return { data: processedData, error };
     } catch (error) {
       console.error('Erro ao buscar tarefas:', error);
       return { data: [], error };
