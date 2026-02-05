@@ -1250,3 +1250,40 @@ textarea {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-sm);
 }
+
+
+/* ==========================================
+   IMAGE MODAL
+   ========================================== */
+
+.image-modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+}
+
+.image-viewer {
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface);
+  min-height: 300px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.image-viewer img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-light);
+}

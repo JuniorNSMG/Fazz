@@ -7,17 +7,20 @@ class UIManager {
     this.taskModal = null;
     this.taskForm = null;
     this.tagModal = null;
+    this.imageModal = null;
     this.currentEditingId = null;
     this.selectedTags = [];
     this.selectedColor = 'blue';
     this.currentAttachments = [];
     this.pendingFiles = [];
+    this.currentImageAttachment = null;
   }
 
   init() {
     this.taskModal = document.getElementById('taskModal');
     this.taskForm = document.getElementById('taskForm');
     this.tagModal = document.getElementById('tagModal');
+    this.imageModal = document.getElementById('imageModal');
 
     this.setupEventListeners();
     this.updateTime();
@@ -110,6 +113,22 @@ class UIManager {
 
     document.getElementById('fileInput')?.addEventListener('change', (e) => {
       this.handleFileSelect(e);
+    });
+
+    // Image modal
+    document.getElementById('btnCloseImageModal')?.addEventListener('click', () => {
+      this.closeImageModal();
+    });
+
+    document.getElementById('btnDownloadImage')?.addEventListener('click', () => {
+      if (this.currentImageAttachment) {
+        this.downloadAttachment(this.currentImageAttachment);
+      }
+    });
+
+    // Fechar modal ao clicar no overlay
+    this.imageModal?.querySelector('.modal-overlay')?.addEventListener('click', () => {
+      this.closeImageModal();
     });
   }
 
@@ -817,6 +836,16 @@ class UIManager {
     info.appendChild(name);
     info.appendChild(size);
 
+    // Se for imagem e não for pendente, permitir visualização ao clicar
+    if (!attachment.pending && attachment.file_type.startsWith('image/')) {
+      div.style.cursor = 'pointer';
+      div.addEventListener('click', (e) => {
+        // Não abrir se clicou em um botão de ação
+        if (e.target.closest('.btn-attachment-action')) return;
+        this.openImageModal(attachment);
+      });
+    }
+
     const actions = document.createElement('div');
     actions.className = 'attachment-actions';
 
@@ -868,17 +897,39 @@ class UIManager {
   }
 
   async downloadAttachment(attachment) {
-    const url = await window.attachmentsManager.getAttachmentUrl(attachment);
-    if (url) {
-      // Criar link temporário para forçar download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = attachment.file_name;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
+    try {
+      console.log('Iniciando download:', attachment.file_name);
+
+      // Usar o método download do Supabase
+      const { data, error } = await window.supabaseClient.downloadAttachment(attachment.file_path);
+
+      if (error) {
+        console.error('Erro ao baixar:', error);
+        alert('Erro ao baixar anexo');
+        return;
+      }
+
+      if (data) {
+        console.log('Download concluído, criando blob');
+
+        // Criar URL do blob e forçar download
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = attachment.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Limpar URL do blob
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+
+        console.log('Download iniciado com sucesso');
+      } else {
+        alert('Erro ao baixar anexo: arquivo não encontrado');
+      }
+    } catch (error) {
+      console.error('Erro no download:', error);
       alert('Erro ao baixar anexo');
     }
   }
@@ -900,6 +951,48 @@ class UIManager {
   async loadAttachments(taskId) {
     this.currentAttachments = await window.attachmentsManager.getTaskAttachments(taskId);
     this.renderPendingAttachments();
+  }
+
+  // ==========================================
+  // IMAGE MODAL
+  // ==========================================
+
+  async openImageModal(attachment) {
+    this.currentImageAttachment = attachment;
+
+    const imageTitle = document.getElementById('imageModalTitle');
+    const imagePreview = document.getElementById('imagePreview');
+
+    if (imageTitle) {
+      imageTitle.textContent = attachment.file_name;
+    }
+
+    if (imagePreview) {
+      imagePreview.src = '';
+      imagePreview.alt = 'Carregando...';
+
+      // Obter URL da imagem
+      const url = await window.attachmentsManager.getAttachmentUrl(attachment);
+      if (url) {
+        imagePreview.src = url;
+        imagePreview.alt = attachment.file_name;
+      } else {
+        alert('Erro ao carregar imagem');
+        return;
+      }
+    }
+
+    this.imageModal?.classList.add('active');
+  }
+
+  closeImageModal() {
+    this.imageModal?.classList.remove('active');
+    this.currentImageAttachment = null;
+
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview) {
+      imagePreview.src = '';
+    }
   }
 }
 

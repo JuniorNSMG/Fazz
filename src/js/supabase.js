@@ -394,6 +394,22 @@ class SupabaseClient {
     }
   }
 
+  // Download direto do arquivo
+  async downloadAttachment(filePath) {
+    if (!this.initialized) return { data: null, error: 'Não inicializado' };
+
+    try {
+      const { data, error } = await this.client.storage
+        .from('task-attachments')
+        .download(filePath);
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao baixar anexo:', error);
+      return { data: null, error };
+    }
+  }
+
   // Deletar anexo
   async deleteAttachment(id, filePath) {
     if (!this.initialized || !this.user) return { error: 'Usuário não autenticado' };
