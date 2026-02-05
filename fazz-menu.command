@@ -6,45 +6,59 @@
 # Mudar para o diretório do script
 cd "$(dirname "$0")"
 
-# Cores para output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-NC='\033[0m' # No Color
+# Detectar se o terminal suporta cores
+if [[ -t 1 ]] && command -v tput &> /dev/null && [[ $(tput colors) -ge 8 ]]; then
+    # Cores para output
+    GREEN=$(tput setaf 2)
+    BLUE=$(tput setaf 4)
+    YELLOW=$(tput setaf 3)
+    RED=$(tput setaf 1)
+    CYAN=$(tput setaf 6)
+    MAGENTA=$(tput setaf 5)
+    BOLD=$(tput bold)
+    NC=$(tput sgr0)
+else
+    # Sem cores
+    GREEN=''
+    BLUE=''
+    YELLOW=''
+    RED=''
+    CYAN=''
+    MAGENTA=''
+    BOLD=''
+    NC=''
+fi
 
 # Função para mostrar header
 show_header() {
     clear
-    echo -e "${CYAN}"
+    echo "${CYAN}"
     echo "╔════════════════════════════════════════╗"
     echo "║           🚀 FAZZ MENU 🚀              ║"
     echo "╚════════════════════════════════════════╝"
-    echo -e "${NC}"
+    echo "${NC}"
     echo ""
 }
 
 # Função para mostrar status
 show_status() {
-    echo -e "${BLUE}📊 Status Atual:${NC}"
+    echo "${BLUE}📊 Status Atual:${NC}"
     git status -s
     echo ""
     BRANCH=$(git branch --show-current)
-    echo -e "${BLUE}📌 Branch: ${GREEN}${BRANCH}${NC}"
+    echo "${BLUE}📌 Branch: ${GREEN}${BRANCH}${NC}"
     echo ""
 }
 
 # Função para commit e deploy
 do_commit() {
     show_header
-    echo -e "${YELLOW}📝 COMMIT E DEPLOY${NC}"
+    echo "${YELLOW}📝 COMMIT E DEPLOY${NC}"
     echo ""
 
     # Verificar se há mudanças
     if [[ -z $(git status -s) ]]; then
-        echo -e "${YELLOW}⚠️  Nenhuma alteração detectada${NC}"
+        echo "${YELLOW}⚠️  Nenhuma alteração detectada${NC}"
         echo ""
         echo "Pressione Enter para voltar..."
         read
@@ -55,11 +69,11 @@ do_commit() {
     show_status
 
     # Pedir mensagem
-    echo -e "${YELLOW}Digite a mensagem do commit:${NC}"
+    echo "${YELLOW}Digite a mensagem do commit:${NC}"
     read -r COMMIT_MSG
 
     if [ -z "$COMMIT_MSG" ]; then
-        echo -e "${RED}❌ Mensagem não pode ser vazia${NC}"
+        echo "${RED}❌ Mensagem não pode ser vazia${NC}"
         echo ""
         echo "Pressione Enter para voltar..."
         read
@@ -68,28 +82,28 @@ do_commit() {
 
     # Executar commit
     echo ""
-    echo -e "${BLUE}📦 Adicionando arquivos...${NC}"
+    echo "${BLUE}📦 Adicionando arquivos...${NC}"
     git add .
 
-    echo -e "${BLUE}💾 Fazendo commit...${NC}"
+    echo "${BLUE}💾 Fazendo commit...${NC}"
     git commit -m "$COMMIT_MSG
 
 https://claude.ai/code/session_01QvcRjqE9rh3RMBaQZiCpxp"
 
-    echo -e "${BLUE}⬆️  Fazendo push...${NC}"
+    echo "${BLUE}⬆️  Fazendo push...${NC}"
     CURRENT_BRANCH=$(git branch --show-current)
     git push -u origin "$CURRENT_BRANCH"
 
     echo ""
-    echo -e "${GREEN}✅ Push realizado!${NC}"
+    echo "${GREEN}✅ Push realizado!${NC}"
     echo ""
 
     # Perguntar sobre PR
-    echo -e "${YELLOW}Deseja criar Pull Request e fazer merge? (s/n)${NC}"
+    echo "${YELLOW}Deseja criar Pull Request e fazer merge? (s/n)${NC}"
     read -r DO_PR
 
     if [[ "$DO_PR" == "s" || "$DO_PR" == "S" ]]; then
-        echo -e "${BLUE}📝 Criando Pull Request...${NC}"
+        echo "${BLUE}📝 Criando Pull Request...${NC}"
         PR_URL=$(gh pr create \
             --base main \
             --head "$CURRENT_BRANCH" \
@@ -102,11 +116,11 @@ $COMMIT_MSG
             --fill 2>&1 | grep -o 'https://github.com[^ ]*' || echo "")
 
         if [ -n "$PR_URL" ]; then
-            echo -e "${GREEN}✅ PR criado: ${PR_URL}${NC}"
+            echo "${GREEN}✅ PR criado: ${PR_URL}${NC}"
             echo ""
-            echo -e "${BLUE}🔄 Fazendo merge...${NC}"
+            echo "${BLUE}🔄 Fazendo merge...${NC}"
             gh pr merge "$PR_URL" --merge --delete-branch
-            echo -e "${GREEN}✅ Merge realizado! GitHub Pages será atualizado.${NC}"
+            echo "${GREEN}✅ Merge realizado! GitHub Pages será atualizado.${NC}"
         fi
     fi
 
@@ -118,12 +132,12 @@ $COMMIT_MSG
 # Função para restaurar mudanças
 do_restore() {
     show_header
-    echo -e "${RED}⚠️  RESTAURAR MUDANÇAS${NC}"
+    echo "${RED}⚠️  RESTAURAR MUDANÇAS${NC}"
     echo ""
 
     # Mostrar mudanças
     if [[ -z $(git status -s) ]]; then
-        echo -e "${GREEN}✅ Nenhuma mudança para restaurar${NC}"
+        echo "${GREEN}✅ Nenhuma mudança para restaurar${NC}"
         echo ""
         echo "Pressione Enter para voltar..."
         read
@@ -132,18 +146,18 @@ do_restore() {
 
     show_status
 
-    echo -e "${RED}ATENÇÃO: Isso vai DESCARTAR todas as mudanças não commitadas!${NC}"
-    echo -e "${YELLOW}Tem certeza? Digite 'SIM' para confirmar:${NC}"
+    echo "${RED}ATENÇÃO: Isso vai DESCARTAR todas as mudanças não commitadas!${NC}"
+    echo "${YELLOW}Tem certeza? Digite 'SIM' para confirmar:${NC}"
     read -r CONFIRM
 
     if [[ "$CONFIRM" == "SIM" ]]; then
         git restore .
         git clean -fd
         echo ""
-        echo -e "${GREEN}✅ Mudanças restauradas${NC}"
+        echo "${GREEN}✅ Mudanças restauradas${NC}"
     else
         echo ""
-        echo -e "${BLUE}❌ Operação cancelada${NC}"
+        echo "${BLUE}❌ Operação cancelada${NC}"
     fi
 
     echo ""
@@ -154,9 +168,9 @@ do_restore() {
 # Função para abrir Claude
 open_claude() {
     show_header
-    echo -e "${MAGENTA}🤖 Abrindo Claude Code no terminal...${NC}"
+    echo "${MAGENTA}🤖 Abrindo Claude Code no terminal...${NC}"
     echo ""
-    echo -e "${YELLOW}Escolha uma opção:${NC}"
+    echo "${YELLOW}Escolha uma opção:${NC}"
     echo ""
     echo "  1) Abrir Claude nesta pasta"
     echo "  2) Copiar comando para colar no terminal"
@@ -168,8 +182,8 @@ open_claude() {
     case $CLAUDE_OPT in
         1)
             echo ""
-            echo -e "${BLUE}Iniciando Claude Code...${NC}"
-            echo -e "${YELLOW}(Para sair, pressione Ctrl+C)${NC}"
+            echo "${BLUE}Iniciando Claude Code...${NC}"
+            echo "${YELLOW}(Para sair, pressione Ctrl+C)${NC}"
             echo ""
             sleep 2
             # Tentar abrir Claude de diferentes formas
@@ -178,17 +192,17 @@ open_claude() {
             elif command -v claude-code &> /dev/null; then
                 claude-code
             else
-                echo -e "${RED}❌ Claude Code não encontrado${NC}"
+                echo "${RED}❌ Claude Code não encontrado${NC}"
                 echo ""
-                echo -e "${YELLOW}Instale com:${NC}"
+                echo "${YELLOW}Instale com:${NC}"
                 echo "  npm install -g @anthropic-ai/claude-code"
             fi
             ;;
         2)
             echo ""
-            echo -e "${GREEN}Cole este comando no terminal:${NC}"
+            echo "${GREEN}Cole este comando no terminal:${NC}"
             echo ""
-            echo -e "${CYAN}cd \"$(pwd)\" && claude${NC}"
+            echo "${CYAN}cd \"$(pwd)\" && claude${NC}"
             echo ""
             ;;
         3)
@@ -204,7 +218,7 @@ open_claude() {
 # Função para ver histórico
 show_history() {
     show_header
-    echo -e "${BLUE}📜 Últimos 10 Commits:${NC}"
+    echo "${BLUE}📜 Últimos 10 Commits:${NC}"
     echo ""
     git log --oneline --graph --decorate -10
     echo ""
@@ -215,37 +229,37 @@ show_history() {
 # Função para atualizar do remoto
 do_pull() {
     show_header
-    echo -e "${BLUE}🔄 Atualizando do GitHub...${NC}"
+    echo "${BLUE}🔄 Atualizando do GitHub...${NC}"
     echo ""
 
     CURRENT_BRANCH=$(git branch --show-current)
 
     # Verificar se há mudanças locais
     if [[ -n $(git status -s) ]]; then
-        echo -e "${YELLOW}⚠️  Você tem mudanças não commitadas.${NC}"
-        echo -e "${YELLOW}Deseja salvá-las temporariamente (stash)? (s/n)${NC}"
+        echo "${YELLOW}⚠️  Você tem mudanças não commitadas.${NC}"
+        echo "${YELLOW}Deseja salvá-las temporariamente (stash)? (s/n)${NC}"
         read -r DO_STASH
 
         if [[ "$DO_STASH" == "s" || "$DO_STASH" == "S" ]]; then
             git stash
-            echo -e "${GREEN}✅ Mudanças salvas temporariamente${NC}"
+            echo "${GREEN}✅ Mudanças salvas temporariamente${NC}"
             STASHED=true
         fi
     fi
 
     # Pull
-    echo -e "${BLUE}Baixando atualizações...${NC}"
+    echo "${BLUE}Baixando atualizações...${NC}"
     git pull origin "$CURRENT_BRANCH"
 
     # Restaurar stash se necessário
     if [ "$STASHED" = true ]; then
         echo ""
-        echo -e "${BLUE}Restaurando suas mudanças...${NC}"
+        echo "${BLUE}Restaurando suas mudanças...${NC}"
         git stash pop
     fi
 
     echo ""
-    echo -e "${GREEN}✅ Atualização concluída!${NC}"
+    echo "${GREEN}✅ Atualização concluída!${NC}"
     echo ""
     echo "Pressione Enter para voltar..."
     read
@@ -254,20 +268,20 @@ do_pull() {
 # Função para abrir no navegador
 open_browser() {
     show_header
-    echo -e "${BLUE}🌐 Abrindo GitHub Pages...${NC}"
+    echo "${BLUE}🌐 Abrindo GitHub Pages...${NC}"
     open "https://juniornsmg.github.io/Fazz"
     echo ""
-    echo -e "${GREEN}✅ Abrindo no navegador...${NC}"
+    echo "${GREEN}✅ Abrindo no navegador...${NC}"
     sleep 1
 }
 
 # Função para abrir VS Code
 open_vscode() {
     show_header
-    echo -e "${BLUE}💻 Abrindo no VS Code...${NC}"
+    echo "${BLUE}💻 Abrindo no VS Code...${NC}"
     code .
     echo ""
-    echo -e "${GREEN}✅ VS Code aberto${NC}"
+    echo "${GREEN}✅ VS Code aberto${NC}"
     sleep 1
 }
 
@@ -276,7 +290,7 @@ show_menu() {
     show_header
     show_status
 
-    echo -e "${YELLOW}O que deseja fazer?${NC}"
+    echo "${YELLOW}O que deseja fazer?${NC}"
     echo ""
     echo "  ${GREEN}1)${NC} 📝 Commit e Deploy"
     echo "  ${GREEN}2)${NC} 🔄 Atualizar do GitHub (Pull)"
@@ -287,7 +301,7 @@ show_menu() {
     echo "  ${GREEN}7)${NC} ${RED}⚠️  Restaurar Mudanças (Desfazer)${NC}"
     echo "  ${GREEN}8)${NC} 🚪 Sair"
     echo ""
-    echo -n "Opção: "
+    printf "Opção: "
     read -r option
 
     case $option in
@@ -300,14 +314,14 @@ show_menu() {
         7) do_restore ;;
         8)
             show_header
-            echo -e "${GREEN}👋 Até logo!${NC}"
+            echo "${GREEN}👋 Até logo!${NC}"
             echo ""
             sleep 1
             exit 0
             ;;
         *)
             echo ""
-            echo -e "${RED}❌ Opção inválida${NC}"
+            echo "${RED}❌ Opção inválida${NC}"
             sleep 1
             ;;
     esac
