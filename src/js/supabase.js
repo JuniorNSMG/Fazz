@@ -175,7 +175,7 @@ class SupabaseClient {
       return { data, error };
     } catch (error) {
       console.error('Erro ao criar tarefa:', error);
-      return { data, null, error };
+      return { data: null, error };
     }
   }
 
