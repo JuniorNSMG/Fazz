@@ -10,13 +10,13 @@ class AuthManager {
     this.registerForm = null;
   }
 
-  init() {
+  async init() {
     this.authModal = document.getElementById('authModal');
     this.loginForm = document.getElementById('loginForm');
     this.registerForm = document.getElementById('registerForm');
 
     this.setupEventListeners();
-    this.checkExistingSession();
+    await this.checkExistingSession();
   }
 
   setupEventListeners() {
@@ -128,26 +128,43 @@ class AuthManager {
     window.app.loadTasks();
   }
 
-  checkExistingSession() {
-    // Verificar se tem usuário no localStorage
-    const storedUser = localStorage.getItem(CONFIG.storage.USER_KEY);
+  async checkExistingSession() {
+    // Aguardar Supabase inicializar completamente
+    if (window.supabaseClient.initialized) {
+      try {
+        // Verificar sessão real do Supabase
+        const { data: { session } } = await window.supabaseClient.client.auth.getSession();
 
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user.guest) {
-        this.isGuest = true;
-        this.closeAuthModal();
-        return;
+        if (session && session.user) {
+          window.supabaseClient.user = session.user;
+          console.log('✓ Sessão do Supabase restaurada');
+          this.closeAuthModal();
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
       }
     }
 
-    // Verificar se tem sessão do Supabase
-    if (window.supabaseClient.isAuthenticated()) {
-      this.closeAuthModal();
-      return;
+    // Verificar se tem usuário guest no localStorage
+    const storedUser = localStorage.getItem(CONFIG.storage.USER_KEY);
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.guest) {
+          this.isGuest = true;
+          console.log('✓ Modo guest ativado');
+          this.closeAuthModal();
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao ler localStorage:', error);
+        localStorage.removeItem(CONFIG.storage.USER_KEY);
+      }
     }
 
     // Se não tem nada, mostrar modal de auth
+    console.log('⚠️ Nenhuma sessão encontrada, mostrando modal de autenticação');
     this.showAuthModal();
   }
 
@@ -172,6 +189,13 @@ class AuthManager {
       await window.supabaseClient.logout();
       localStorage.removeItem(CONFIG.storage.USER_KEY);
       localStorage.removeItem(CONFIG.storage.TASKS_KEY);
+      localStorage.removeItem('fazz_tags');
+
+      // Limpar cache IndexedDB
+      if (window.cacheManager) {
+        await window.cacheManager.clearAll();
+      }
+
       this.isGuest = false;
       window.location.reload();
     }

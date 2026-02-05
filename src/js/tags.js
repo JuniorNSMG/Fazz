@@ -11,22 +11,59 @@ class TagsManager {
     ];
   }
 
-  // Carregar tags do usuário
-  async loadTags() {
+  // Carregar tags com estratégia cache-first
+  async loadTags(forceSync = false) {
+    const cacheAvailable = window.cacheManager && window.cacheManager.db;
+
+    // ESTRATÉGIA CACHE-FIRST: Carregar cache primeiro
+    if (cacheAvailable && !forceSync) {
+      try {
+        const cachedTags = await window.cacheManager.getAll(window.cacheManager.stores.TAGS);
+
+        if (cachedTags && cachedTags.length > 0) {
+          this.tags = cachedTags;
+          console.log(`✓ ${cachedTags.length} tags carregadas do cache`);
+
+          // Sincronizar em background
+          this.syncInBackground();
+
+          return this.tags;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar tags do cache:', error);
+      }
+    }
+
+    // Se não tem cache ou forceSync, buscar do servidor
+    return await this.loadFromServer();
+  }
+
+  // Carregar do servidor e salvar no cache
+  async loadFromServer() {
     if (window.supabaseClient.isAuthenticated()) {
       const { data, error } = await window.supabaseClient.fetchTags();
       if (!error && data) {
         this.tags = data;
+
+        // Salvar no cache IndexedDB
+        if (window.cacheManager) {
+          await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+        }
+
+        // Salvar no localStorage como backup
         this.saveTags();
+
+        console.log(`✓ ${data.length} tags carregadas do servidor`);
         return this.tags;
       }
     }
 
-    // Carregar do localStorage
+    // Carregar do localStorage (modo guest ou offline)
     const stored = localStorage.getItem('fazz_tags');
     if (stored) {
       try {
         this.tags = JSON.parse(stored);
+        console.log(`✓ ${this.tags.length} tags carregadas do localStorage`);
       } catch (e) {
         console.error('Erro ao carregar tags:', e);
         this.tags = [];
@@ -34,6 +71,32 @@ class TagsManager {
     }
 
     return this.tags;
+  }
+
+  // Sincronizar com servidor em background
+  async syncInBackground() {
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    if (window.supabaseClient.isAuthenticated()) {
+      const { data, error } = await window.supabaseClient.fetchTags();
+
+      if (!error && data) {
+        const hasChanges = data.length !== this.tags.length ||
+          data.some(serverTag => !this.tags.find(t => t.id === serverTag.id));
+
+        if (hasChanges) {
+          this.tags = data;
+
+          // Atualizar cache
+          if (window.cacheManager) {
+            await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+          }
+
+          this.saveTags();
+          console.log('✓ Tags sincronizadas');
+        }
+      }
+    }
   }
 
   // Salvar tags localmente

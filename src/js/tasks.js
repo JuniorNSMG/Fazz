@@ -8,8 +8,54 @@ class TasksManager {
     this.currentEditingTask = null;
   }
 
-  // Carregar tarefas (do Supabase ou localStorage)
-  async loadTasks() {
+  // Carregar tarefas com estratégia cache-first
+  async loadTasks(forceSync = false) {
+    const cacheAvailable = window.cacheManager && window.cacheManager.db;
+
+    // ESTRATÉGIA CACHE-FIRST: Carregar cache primeiro
+    if (cacheAvailable && !forceSync) {
+      try {
+        const cachedTasks = await window.cacheManager.getAll(window.cacheManager.stores.TASKS);
+
+        if (cachedTasks && cachedTasks.length > 0) {
+          // Carregar tags e anexos do cache para cada tarefa
+          for (const task of cachedTasks) {
+            const tags = await window.cacheManager.getByIndex(
+              window.cacheManager.stores.TASK_TAGS,
+              'task_id',
+              task.id
+            );
+            task.tags = tags || [];
+
+            const attachments = await window.cacheManager.getByIndex(
+              window.cacheManager.stores.ATTACHMENTS,
+              'task_id',
+              task.id
+            );
+            task.attachments = attachments || [];
+          }
+
+          this.tasks = cachedTasks;
+          console.log(`✓ ${cachedTasks.length} tarefas carregadas do cache`);
+
+          // Sincronizar em background (não bloqueia a UI)
+          this.syncInBackground();
+
+          return this.tasks;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar do cache:', error);
+      }
+    }
+
+    // Se não tem cache ou forceSync, buscar do servidor
+    return await this.loadFromServer();
+  }
+
+  // Carregar do servidor e salvar no cache
+  async loadFromServer() {
+    console.log('↓ Carregando tarefas do servidor...');
+
     // Se estiver autenticado no Supabase, buscar de lá
     if (window.supabaseClient.isAuthenticated()) {
       const { data, error } = await window.supabaseClient.fetchTasks();
@@ -25,16 +71,26 @@ class TasksManager {
         }
 
         this.tasks = data;
-        this.saveTasks(); // Salvar localmente como backup
+
+        // Salvar no cache IndexedDB
+        if (window.cacheManager) {
+          await this.saveToCache();
+        }
+
+        // Salvar no localStorage como backup
+        this.saveTasks();
+
+        console.log(`✓ ${data.length} tarefas carregadas do servidor`);
         return this.tasks;
       }
     }
 
-    // Caso contrário, buscar do localStorage
+    // Fallback: buscar do localStorage (modo guest ou offline)
     const stored = localStorage.getItem(CONFIG.storage.TASKS_KEY);
     if (stored) {
       try {
         this.tasks = JSON.parse(stored);
+        console.log(`✓ ${this.tasks.length} tarefas carregadas do localStorage`);
       } catch (e) {
         console.error('Erro ao carregar tarefas do localStorage:', e);
         this.tasks = [];
@@ -42,6 +98,107 @@ class TasksManager {
     }
 
     return this.tasks;
+  }
+
+  // Sincronizar com servidor em background
+  async syncInBackground() {
+    // Aguardar 500ms antes de sincronizar (debounce)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    console.log('🔄 Sincronizando com servidor em background...');
+
+    if (window.supabaseClient.isAuthenticated()) {
+      const { data, error } = await window.supabaseClient.fetchTasks();
+
+      if (!error && data) {
+        // Comparar com cache atual
+        const hasChanges = this.detectChanges(data);
+
+        if (hasChanges) {
+          console.log('✓ Mudanças detectadas, atualizando...');
+
+          // Carregar tags e anexos
+          for (const task of data) {
+            const tags = await window.tagsManager.getTaskTags(task.id);
+            task.tags = tags;
+
+            const attachments = await window.attachmentsManager.getTaskAttachments(task.id);
+            task.attachments = attachments;
+          }
+
+          this.tasks = data;
+
+          // Atualizar cache
+          await this.saveToCache();
+          this.saveTasks();
+
+          // Atualizar UI
+          if (window.uiManager) {
+            window.uiManager.renderTasks();
+          }
+
+          console.log('✓ Sincronização concluída');
+        } else {
+          console.log('✓ Nenhuma mudança detectada');
+        }
+
+        // Atualizar timestamp de sincronização
+        if (window.cacheManager) {
+          await window.cacheManager.setLastSync('tasks');
+        }
+      }
+    }
+  }
+
+  // Detectar se há mudanças entre dados do servidor e cache
+  detectChanges(serverData) {
+    if (serverData.length !== this.tasks.length) return true;
+
+    // Comparar timestamps de atualização
+    for (const serverTask of serverData) {
+      const cachedTask = this.tasks.find(t => t.id === serverTask.id);
+
+      if (!cachedTask) return true;
+
+      if (serverTask.updated_at !== cachedTask.updated_at) return true;
+    }
+
+    return false;
+  }
+
+  // Salvar no cache IndexedDB
+  async saveToCache() {
+    if (!window.cacheManager) return;
+
+    try {
+      // Salvar tarefas
+      await window.cacheManager.saveMany(window.cacheManager.stores.TASKS, this.tasks);
+
+      // Salvar tags relacionadas
+      const allTaskTags = [];
+      const allAttachments = [];
+
+      for (const task of this.tasks) {
+        if (task.tags && task.tags.length > 0) {
+          allTaskTags.push(...task.tags);
+        }
+        if (task.attachments && task.attachments.length > 0) {
+          allAttachments.push(...task.attachments);
+        }
+      }
+
+      if (allTaskTags.length > 0) {
+        await window.cacheManager.saveMany(window.cacheManager.stores.TASK_TAGS, allTaskTags);
+      }
+
+      if (allAttachments.length > 0) {
+        await window.cacheManager.saveMany(window.cacheManager.stores.ATTACHMENTS, allAttachments);
+      }
+
+      console.log('✓ Cache atualizado');
+    } catch (error) {
+      console.error('Erro ao salvar no cache:', error);
+    }
   }
 
   // Salvar tarefas no localStorage

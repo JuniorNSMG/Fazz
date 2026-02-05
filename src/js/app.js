@@ -11,18 +11,25 @@ class FazzApp {
     console.log('🚀 Inicializando Fazz...');
 
     try {
-      // 1. Inicializar Supabase
+      // 1. Inicializar Cache Manager (IndexedDB)
+      if (window.cacheManager) {
+        await window.cacheManager.init();
+        console.log('✓ Cache Manager inicializado');
+      }
+
+      // 2. Inicializar Supabase
       await window.supabaseClient.init();
 
-      // 2. Inicializar Auth
-      window.authManager.init();
+      // 3. Inicializar Auth (verifica sessão e pode mostrar modal se necessário)
+      await window.authManager.init();
 
-      // 3. Inicializar UI
+      // 4. Inicializar UI
       window.uiManager.init();
 
-      // 4. Carregar tarefas (se já estiver autenticado)
+      // 5. Carregar tarefas e tags (cache-first)
       if (window.authManager.isGuest || window.supabaseClient.isAuthenticated()) {
         await this.loadTasks();
+        await window.tagsManager.loadTags();
       }
 
       this.initialized = true;
