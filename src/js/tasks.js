@@ -136,11 +136,16 @@ class TasksManager {
     const groups = {
       overdue: [],
       today: [],
-      upcoming: {}
+      upcoming: {},
+      completed: []
     };
 
     this.tasks.forEach(task => {
-      if (task.completed) return; // Ignorar concluídas na visualização principal
+      // Separar concluídas
+      if (task.completed) {
+        groups.completed.push(task);
+        return;
+      }
 
       const taskDate = new Date(task.date);
       taskDate.setHours(0, 0, 0, 0);
@@ -166,6 +171,10 @@ class TasksManager {
     // Ordenar cada grupo por horário
     groups.overdue.sort(this.sortByTime);
     groups.today.sort(this.sortByTime);
+    groups.completed.sort((a, b) => {
+      // Ordenar concluídas por data de conclusão (mais recentes primeiro)
+      return new Date(b.updated_at) - new Date(a.updated_at);
+    });
 
     Object.keys(groups.upcoming).forEach(dateKey => {
       groups.upcoming[dateKey].sort(this.sortByTime);

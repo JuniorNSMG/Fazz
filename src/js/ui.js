@@ -79,6 +79,9 @@ class UIManager {
 
     // Renderizar Datas (Hoje + Futuras)
     this.renderDateSections(grouped);
+
+    // Renderizar Concluídas
+    this.renderCompletedTasks(grouped.completed);
   }
 
   // Renderizar Tarefas Atrasadas
@@ -150,6 +153,44 @@ class UIManager {
     section.appendChild(taskList);
 
     return section;
+  }
+
+  // Renderizar Tarefas Concluídas
+  renderCompletedTasks(tasks) {
+    const dateSectionsContainer = document.getElementById('dateSections');
+    if (!dateSectionsContainer) return;
+
+    // Remover seção antiga de concluídas (se existir)
+    const oldSection = document.getElementById('completedSection');
+    if (oldSection) {
+      oldSection.remove();
+    }
+
+    if (tasks.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'task-section completed-section';
+    section.id = 'completedSection';
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+
+    const titleElement = document.createElement('h2');
+    titleElement.className = 'section-title';
+    titleElement.textContent = `Concluídas (${tasks.length})`;
+
+    header.appendChild(titleElement);
+    section.appendChild(header);
+
+    const taskList = document.createElement('ul');
+    taskList.className = 'task-list';
+
+    tasks.forEach(task => {
+      taskList.appendChild(this.createTaskElement(task, false));
+    });
+
+    section.appendChild(taskList);
+    dateSectionsContainer.appendChild(section);
   }
 
   // Criar Elemento de Tarefa
