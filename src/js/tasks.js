@@ -464,9 +464,17 @@ class TasksManager {
     console.log('🔄 Tarefa tem recorrência?', task.recurrence);
 
     const wasCompleted = task.completed;
-    const updatedTask = await this.updateTask(id, { completed: !task.completed });
+
+    // IMPORTANTE: Preservar recorrência ao atualizar
+    const updates = {
+      completed: !task.completed,
+      recurrence: task.recurrence // Preservar recorrência
+    };
+
+    const updatedTask = await this.updateTask(id, updates);
 
     console.log('🔄 wasCompleted:', wasCompleted, 'updatedTask.completed:', updatedTask.completed);
+    console.log('🔄 updatedTask.recurrence após update:', updatedTask.recurrence);
 
     // Se a tarefa foi marcada como concluída e tem recorrência
     if (!wasCompleted && updatedTask.completed && updatedTask.recurrence && updatedTask.recurrence.enabled) {
