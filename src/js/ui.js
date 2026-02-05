@@ -302,6 +302,8 @@ class UIManager {
     title.className = 'task-title';
     title.textContent = task.title;
 
+    content.appendChild(title);
+
     // Tags (se houver)
     if (task.tags && task.tags.length > 0) {
       const tagsContainer = document.createElement('div');
@@ -309,10 +311,7 @@ class UIManager {
       task.tags.forEach(tag => {
         tagsContainer.appendChild(this.createTagElement(tag, false));
       });
-      content.appendChild(title);
       content.appendChild(tagsContainer);
-    } else {
-      content.appendChild(title);
     }
 
     const meta = document.createElement('div');
@@ -369,7 +368,6 @@ class UIManager {
       meta.appendChild(attachmentIndicator);
     }
 
-    content.appendChild(title);
     content.appendChild(meta);
 
     // Adicionar ao item
