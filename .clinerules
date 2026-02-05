@@ -1,4 +1,5 @@
 # Regras do Projeto Fazz
+- Utilizaremos sempre o Supabase para guardar as informações. Qualquer tarefa existente ou que venhamos a desenvolver tudo deve ser sincronizado com Supabase, nada em localcache.
 
 ## Git e Deploy
 - SEMPRE fazer commits e push DIRETO para a branch MAIN
