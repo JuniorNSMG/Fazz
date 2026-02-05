@@ -1,0 +1,33 @@
+name: Test Workflow
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Print test message
+        run: |
+          echo "🚀 Esta é uma GitHub Action de teste!"
+          echo "📝 Branch: ${{ github.ref_name }}"
+          echo "💻 Commit: ${{ github.sha }}"
+          echo "👤 Autor: ${{ github.actor }}"
+          echo "✅ Workflow executado com sucesso!"
+
+      - name: List files
+        run: |
+          echo "Arquivos no repositório:"
+          ls -la
+
+      - name: Final message
+        run: |
+          echo "🎉 Workflow de teste concluído!"
+          echo "Timestamp: $(date)"
