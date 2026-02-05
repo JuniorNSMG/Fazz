@@ -262,6 +262,19 @@ class UIManager {
     title.className = 'task-title';
     title.textContent = task.title;
 
+    // Tags (se houver)
+    if (task.tags && task.tags.length > 0) {
+      const tagsContainer = document.createElement('div');
+      tagsContainer.className = 'task-tags';
+      task.tags.forEach(tag => {
+        tagsContainer.appendChild(this.createTagElement(tag, false));
+      });
+      content.appendChild(title);
+      content.appendChild(tagsContainer);
+    } else {
+      content.appendChild(title);
+    }
+
     const meta = document.createElement('div');
     meta.className = 'task-meta';
 
@@ -358,16 +371,27 @@ class UIManager {
       return;
     }
 
+    let taskId;
     if (this.currentEditingId) {
       // Atualizar tarefa existente
       await window.tasksManager.updateTask(this.currentEditingId, taskData);
+      taskId = this.currentEditingId;
     } else {
       // Criar nova tarefa
-      await window.tasksManager.createTask(taskData);
+      const newTask = await window.tasksManager.createTask(taskData);
+      taskId = newTask.id;
+    }
+
+    // Salvar tags
+    if (this.selectedTags.length > 0) {
+      for (const tagId of this.selectedTags) {
+        await window.tagsManager.addTagToTask(taskId, tagId);
+      }
     }
 
     this.closeTaskModal();
-    this.renderTasks();
+    this.selectedTags = [];
+    await this.renderTasks();
   }
 
   // Marcar/Desmarcar Tarefa como Concluída
