@@ -36,10 +36,15 @@ class TasksManager {
       const { data, error } = await window.supabaseClient.fetchTasks();
 
       if (!error && data) {
-        // Inicializar tags e anexos como arrays vazios (serão carregados sob demanda)
+        // Inicializar tags e anexos como arrays vazios se não existirem
         data.forEach(task => {
           task.tags = task.tags || [];
           task.attachments = task.attachments || [];
+
+          // Debug: mostrar quantas tags cada tarefa tem
+          if (task.tags.length > 0) {
+            console.log(`📌 Tarefa "${task.title}" tem ${task.tags.length} tag(s):`, task.tags.map(t => t.name));
+          }
         });
 
         this.tasks = data;

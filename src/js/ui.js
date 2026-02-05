@@ -306,12 +306,15 @@ class UIManager {
 
     // Tags (se houver)
     if (task.tags && task.tags.length > 0) {
+      console.log(`🏷️ Renderizando ${task.tags.length} tag(s) para tarefa "${task.title}"`);
       const tagsContainer = document.createElement('div');
       tagsContainer.className = 'task-tags';
       task.tags.forEach(tag => {
         tagsContainer.appendChild(this.createTagElement(tag, false));
       });
       content.appendChild(tagsContainer);
+    } else {
+      console.log(`⚠️ Tarefa "${task.title}" não tem tags (tags:`, task.tags, ')');
     }
 
     const meta = document.createElement('div');
