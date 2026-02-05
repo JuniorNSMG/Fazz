@@ -254,6 +254,24 @@ class TasksManager {
     return this.tasks.find(t => t.id === id);
   }
 
+  // Limpar tarefas concluídas
+  async clearCompleted() {
+    const completedTasks = this.tasks.filter(t => t.completed);
+
+    // Se estiver autenticado, deletar do Supabase
+    if (window.supabaseClient.isAuthenticated()) {
+      for (const task of completedTasks) {
+        await window.supabaseClient.deleteTask(task.id);
+      }
+    }
+
+    // Remover localmente
+    this.tasks = this.tasks.filter(t => !t.completed);
+    this.saveTasks();
+
+    return completedTasks.length;
+  }
+
   // Formatar data para exibição
   formatDate(dateStr) {
     // Usar parseLocalDate para evitar problema de fuso horário
