@@ -15,10 +15,13 @@ class TasksManager {
       const { data, error } = await window.supabaseClient.fetchTasks();
 
       if (!error && data) {
-        // Carregar tags de cada tarefa
+        // Carregar tags e anexos de cada tarefa
         for (const task of data) {
           const tags = await window.tagsManager.getTaskTags(task.id);
           task.tags = tags;
+
+          const attachments = await window.attachmentsManager.getTaskAttachments(task.id);
+          task.attachments = attachments;
         }
 
         this.tasks = data;

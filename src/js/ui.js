@@ -319,6 +319,37 @@ class UIManager {
 
     meta.appendChild(dateDiv);
 
+    // Indicador de observações
+    if (task.notes && task.notes.trim()) {
+      const notesIndicator = document.createElement('div');
+      notesIndicator.className = 'task-indicator';
+      notesIndicator.title = 'Possui observações';
+      notesIndicator.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <line x1="10" y1="9" x2="8" y2="9"/>
+        </svg>
+      `;
+      meta.appendChild(notesIndicator);
+    }
+
+    // Indicador de anexos
+    if (task.attachments && task.attachments.length > 0) {
+      const attachmentIndicator = document.createElement('div');
+      attachmentIndicator.className = 'task-indicator';
+      attachmentIndicator.title = `${task.attachments.length} anexo${task.attachments.length > 1 ? 's' : ''}`;
+      attachmentIndicator.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+        <span class="indicator-count">${task.attachments.length}</span>
+      `;
+      meta.appendChild(attachmentIndicator);
+    }
+
     content.appendChild(title);
     content.appendChild(meta);
 
@@ -839,7 +870,14 @@ class UIManager {
   async downloadAttachment(attachment) {
     const url = await window.attachmentsManager.getAttachmentUrl(attachment);
     if (url) {
-      window.open(url, '_blank');
+      // Criar link temporário para forçar download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.file_name;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
       alert('Erro ao baixar anexo');
     }

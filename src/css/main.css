@@ -392,6 +392,33 @@ body {
   color: var(--color-overdue);
 }
 
+.task-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-tertiary);
+  padding: 4px 8px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  transition: all var(--transition-base);
+}
+
+.task-indicator:hover {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary);
+}
+
+.task-indicator svg {
+  width: 14px;
+  height: 14px;
+}
+
+.indicator-count {
+  font-weight: var(--font-weight-medium);
+  font-size: 11px;
+}
+
 .task-project {
   display: flex;
   align-items: center;

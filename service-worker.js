@@ -3,7 +3,7 @@
 // PWA Offline-First Strategy
 // ==========================================
 
-const CACHE_NAME = 'fazz-v1.0.2';
+const CACHE_NAME = 'fazz-v1.0.3';
 const OFFLINE_URL = './offline.html';
 
 // Arquivos para cachear na instalação
