@@ -749,6 +749,85 @@ class UIManager {
     document.getElementById('tasksContainer')?.appendChild(section);
   }
 
+  // Renderizar tarefas de hoje
+  renderTodayTasks(todayTasks) {
+    if (todayTasks.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'tasks-section';
+
+    const titleElement = document.createElement('h2');
+    titleElement.className = 'section-title';
+    titleElement.textContent = `Hoje (${todayTasks.length})`;
+    section.appendChild(titleElement);
+
+    const tasksElement = document.createElement('div');
+    tasksElement.className = 'tasks-list';
+
+    todayTasks.forEach(task => {
+      const taskElement = this.createTaskElement(task);
+      tasksElement.appendChild(taskElement);
+    });
+
+    section.appendChild(tasksElement);
+    document.getElementById('tasksContainer')?.appendChild(section);
+  }
+
+  // Renderizar todas as tarefas futuras
+  renderUpcomingTasks(upcomingTasks) {
+    const dates = Object.keys(upcomingTasks).sort();
+
+    dates.forEach(dateStr => {
+      const tasks = upcomingTasks[dateStr];
+      if (tasks.length === 0) return;
+
+      const section = document.createElement('section');
+      section.className = 'tasks-section';
+
+      const date = new Date(dateStr + 'T00:00:00');
+      const dateTitle = this.formatDateTitle(date);
+
+      const titleElement = document.createElement('h2');
+      titleElement.className = 'section-title';
+      titleElement.textContent = `${dateTitle} (${tasks.length})`;
+      section.appendChild(titleElement);
+
+      const tasksElement = document.createElement('div');
+      tasksElement.className = 'tasks-list';
+
+      tasks.forEach(task => {
+        const taskElement = this.createTaskElement(task);
+        tasksElement.appendChild(taskElement);
+      });
+
+      section.appendChild(tasksElement);
+      document.getElementById('tasksContainer')?.appendChild(section);
+    });
+  }
+
+  // Formatar título da data
+  formatDateTitle(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    if (targetDate.getTime() === today.getTime()) {
+      return 'Hoje';
+    } else if (targetDate.getTime() === tomorrow.getTime()) {
+      return 'Amanhã';
+    } else {
+      const weekdays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+      return `${weekdays[targetDate.getDay()]}, ${targetDate.getDate()} ${months[targetDate.getMonth()]}`;
+    }
+  }
+
   // Menu do Usuário
   showUserMenu() {
     const options = ['Sair'];

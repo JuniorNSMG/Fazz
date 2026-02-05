@@ -627,14 +627,14 @@ body {
 .modal-content {
   position: relative;
   background-color: var(--color-background);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  max-width: 480px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  max-width: 520px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   z-index: var(--z-modal-content);
-  animation: modalSlideUp var(--transition-slow);
+  animation: modalSlideUp 200ms ease;
 }
 
 @keyframes modalSlideUp {
@@ -652,14 +652,28 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--spacing-xl);
+  border-bottom: 2px solid var(--color-border);
+  background-color: var(--color-surface);
 }
 
 .modal-header h3 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+#taskModal .modal-header h3::before,
+#tagModal .modal-header h3::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 28px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
 }
 
 .btn-close {
@@ -684,10 +698,14 @@ body {
 
 .task-form,
 .auth-form {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+}
+
+.modal-body {
+  padding: var(--spacing-xl);
 }
 
 .form-group {
@@ -704,8 +722,11 @@ body {
 
 .form-group label {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-xs);
 }
 
 .form-group input,
