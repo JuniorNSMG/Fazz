@@ -1,0 +1,360 @@
+// ==========================================
+// FAZZ - UI Manager
+// ==========================================
+
+class UIManager {
+  constructor() {
+    this.taskModal = null;
+    this.taskForm = null;
+    this.currentEditingId = null;
+  }
+
+  init() {
+    this.taskModal = document.getElementById('taskModal');
+    this.taskForm = document.getElementById('taskForm');
+
+    this.setupEventListeners();
+    this.updateTime();
+    setInterval(() => this.updateTime(), 60000); // Atualizar a cada minuto
+  }
+
+  setupEventListeners() {
+    // FAB - Adicionar Tarefa
+    document.getElementById('fabAddTask')?.addEventListener('click', () => {
+      this.openTaskModal();
+    });
+
+    // Fechar Modal
+    document.getElementById('btnCloseModal')?.addEventListener('click', () => {
+      this.closeTaskModal();
+    });
+
+    document.getElementById('btnCancelTask')?.addEventListener('click', () => {
+      this.closeTaskModal();
+    });
+
+    // Overlay do Modal
+    this.taskModal?.querySelector('.modal-overlay')?.addEventListener('click', () => {
+      this.closeTaskModal();
+    });
+
+    // Form de Tarefa
+    this.taskForm?.addEventListener('submit', (e) => this.handleTaskSubmit(e));
+
+    // Bottom Nav
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', () => this.handleNavigation(item.dataset.view));
+    });
+
+    // Botão Reagendar Atrasadas
+    document.getElementById('btnRescheduleOverdue')?.addEventListener('click', () => {
+      this.handleRescheduleOverdue();
+    });
+
+    // Menu do usuário
+    document.getElementById('btnMenu')?.addEventListener('click', () => {
+      this.showUserMenu();
+    });
+  }
+
+  // Atualizar relógio do header
+  updateTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timeElement = document.getElementById('currentTime');
+
+    if (timeElement) {
+      timeElement.textContent = `${hours}:${minutes}`;
+    }
+  }
+
+  // Renderizar todas as tarefas
+  renderTasks() {
+    const grouped = window.tasksManager.getGroupedTasks();
+
+    // Renderizar Atrasadas
+    this.renderOverdueTasks(grouped.overdue);
+
+    // Renderizar Datas (Hoje + Futuras)
+    this.renderDateSections(grouped);
+  }
+
+  // Renderizar Tarefas Atrasadas
+  renderOverdueTasks(tasks) {
+    const overdueSection = document.getElementById('overdueSection');
+    const overdueList = document.getElementById('overdueList');
+
+    if (!overdueList) return;
+
+    if (tasks.length === 0) {
+      overdueSection.style.display = 'none';
+      return;
+    }
+
+    overdueSection.style.display = 'flex';
+    overdueList.innerHTML = '';
+
+    tasks.forEach(task => {
+      overdueList.appendChild(this.createTaskElement(task, true));
+    });
+  }
+
+  // Renderizar Seções de Datas
+  renderDateSections(grouped) {
+    const dateSectionsContainer = document.getElementById('dateSections');
+    if (!dateSectionsContainer) return;
+
+    dateSectionsContainer.innerHTML = '';
+
+    // Renderizar Hoje
+    if (grouped.today.length > 0) {
+      const todaySection = this.createDateSection('Hoje', grouped.today);
+      dateSectionsContainer.appendChild(todaySection);
+    }
+
+    // Renderizar Datas Futuras (ordenadas)
+    const upcomingDates = Object.keys(grouped.upcoming).sort();
+
+    upcomingDates.forEach(dateStr => {
+      const tasks = grouped.upcoming[dateStr];
+      const formattedDate = window.tasksManager.formatSectionDate(dateStr);
+      const section = this.createDateSection(formattedDate, tasks);
+      dateSectionsContainer.appendChild(section);
+    });
+  }
+
+  // Criar Seção de Data
+  createDateSection(title, tasks) {
+    const section = document.createElement('section');
+    section.className = 'task-section';
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+
+    const titleElement = document.createElement('h2');
+    titleElement.className = 'section-title';
+    titleElement.textContent = title;
+
+    header.appendChild(titleElement);
+    section.appendChild(header);
+
+    const taskList = document.createElement('ul');
+    taskList.className = 'task-list';
+
+    tasks.forEach(task => {
+      taskList.appendChild(this.createTaskElement(task, false));
+    });
+
+    section.appendChild(taskList);
+
+    return section;
+  }
+
+  // Criar Elemento de Tarefa
+  createTaskElement(task, isOverdue = false) {
+    const li = document.createElement('li');
+    li.className = 'task-item';
+    li.dataset.taskId = task.id;
+
+    if (task.completed) {
+      li.classList.add('completed');
+    }
+
+    if (isOverdue) {
+      li.classList.add('overdue');
+    }
+
+    // Checkbox
+    const checkbox = document.createElement('div');
+    checkbox.className = 'task-checkbox';
+    checkbox.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    `;
+    checkbox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.handleToggleComplete(task.id);
+    });
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'task-content';
+
+    const title = document.createElement('div');
+    title.className = 'task-title';
+    title.textContent = task.title;
+
+    const meta = document.createElement('div');
+    meta.className = 'task-meta';
+
+    // Data e Horário
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'task-date';
+
+    const dateIcon = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    `;
+
+    const dateText = window.tasksManager.formatDate(task.date);
+    const timeText = task.time ? ` ${task.time}` : '';
+
+    dateDiv.innerHTML = `${dateIcon} ${dateText}${timeText}`;
+
+    // Projeto
+    const projectDiv = document.createElement('div');
+    projectDiv.className = 'task-project';
+
+    const projectIcon = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
+        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+      </svg>
+    `;
+
+    projectDiv.innerHTML = `${projectIcon} ${task.project === 'inbox' ? 'Entrada' : task.project}`;
+
+    meta.appendChild(dateDiv);
+    meta.appendChild(projectDiv);
+
+    content.appendChild(title);
+    content.appendChild(meta);
+
+    // Adicionar ao item
+    li.appendChild(checkbox);
+    li.appendChild(content);
+
+    // Click para editar
+    li.addEventListener('click', (e) => {
+      if (e.target === checkbox || e.target.closest('.task-checkbox')) return;
+      this.openTaskModal(task);
+    });
+
+    return li;
+  }
+
+  // Abrir Modal de Tarefa
+  openTaskModal(task = null) {
+    this.currentEditingId = task?.id || null;
+
+    const modalTitle = document.getElementById('modalTitle');
+    const taskTitle = document.getElementById('taskTitle');
+    const taskDate = document.getElementById('taskDate');
+    const taskTime = document.getElementById('taskTime');
+    const taskProject = document.getElementById('taskProject');
+
+    if (task) {
+      modalTitle.textContent = 'Editar Tarefa';
+      taskTitle.value = task.title;
+      taskDate.value = task.date;
+      taskTime.value = task.time || '';
+      taskProject.value = task.project || 'inbox';
+    } else {
+      modalTitle.textContent = 'Nova Tarefa';
+      taskTitle.value = '';
+      taskDate.value = new Date().toISOString().split('T')[0];
+      taskTime.value = '';
+      taskProject.value = 'inbox';
+    }
+
+    this.taskModal?.classList.add('active');
+    taskTitle?.focus();
+  }
+
+  // Fechar Modal de Tarefa
+  closeTaskModal() {
+    this.taskModal?.classList.remove('active');
+    this.currentEditingId = null;
+    this.taskForm?.reset();
+  }
+
+  // Submeter Formulário de Tarefa
+  async handleTaskSubmit(e) {
+    e.preventDefault();
+
+    const taskData = {
+      title: document.getElementById('taskTitle').value.trim(),
+      date: document.getElementById('taskDate').value,
+      time: document.getElementById('taskTime').value || null,
+      project: document.getElementById('taskProject').value
+    };
+
+    if (!taskData.title || !taskData.date) {
+      alert('Por favor, preencha o título e a data');
+      return;
+    }
+
+    if (this.currentEditingId) {
+      // Atualizar tarefa existente
+      await window.tasksManager.updateTask(this.currentEditingId, taskData);
+    } else {
+      // Criar nova tarefa
+      await window.tasksManager.createTask(taskData);
+    }
+
+    this.closeTaskModal();
+    this.renderTasks();
+  }
+
+  // Marcar/Desmarcar Tarefa como Concluída
+  async handleToggleComplete(id) {
+    await window.tasksManager.toggleComplete(id);
+    this.renderTasks();
+  }
+
+  // Reagendar Tarefas Atrasadas
+  async handleRescheduleOverdue() {
+    if (confirm('Deseja reagendar todas as tarefas atrasadas para hoje?')) {
+      const count = await window.tasksManager.rescheduleOverdue();
+      alert(`${count} tarefa(s) reagendada(s) para hoje`);
+      this.renderTasks();
+    }
+  }
+
+  // Navegação
+  handleNavigation(view) {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.classList.remove('active');
+    });
+
+    const activeItem = document.querySelector(`[data-view="${view}"]`);
+    activeItem?.classList.add('active');
+
+    // Atualizar título da página
+    const pageTitle = document.querySelector('.page-title');
+    if (pageTitle) {
+      const titles = {
+        inbox: 'Entrada',
+        today: 'Hoje',
+        upcoming: 'Em Breve',
+        navigate: 'Navegar'
+      };
+      pageTitle.textContent = titles[view] || 'Fazz';
+    }
+
+    // Aqui você pode adicionar lógica para filtrar tarefas por view
+    // Por enquanto, apenas renderiza todas
+    this.renderTasks();
+  }
+
+  // Menu do Usuário
+  showUserMenu() {
+    const options = ['Sair'];
+    const choice = confirm('Deseja sair?');
+
+    if (choice) {
+      window.authManager.logout();
+    }
+  }
+}
+
+// Exportar instância global
+window.uiManager = new UIManager();
