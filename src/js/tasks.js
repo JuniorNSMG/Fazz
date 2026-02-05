@@ -86,6 +86,7 @@ class TasksManager {
       notes: taskData.notes || null,
       completed: false,
       tags: [],
+      recurrence: taskData.recurrence || null, // Nova propriedade de recorrência
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -318,6 +319,197 @@ class TasksManager {
     const year = date.getFullYear() !== today.getFullYear() ? `, ${date.getFullYear()}` : '';
 
     return `${dayMonth}${year} · ${dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1)}`;
+  }
+
+  // ==========================================
+  // SISTEMA DE RECORRÊNCIA
+  // ==========================================
+
+  // Calcular próxima data de recorrência
+  calculateNextRecurrence(task) {
+    if (!task.recurrence || !task.recurrence.enabled) return null;
+
+    const currentDate = this.parseLocalDate(task.date);
+    const recurrence = task.recurrence;
+    let nextDate = new Date(currentDate);
+
+    switch (recurrence.type) {
+      case 'daily':
+        // Diariamente - adiciona N dias
+        nextDate.setDate(nextDate.getDate() + (recurrence.interval || 1));
+        break;
+
+      case 'weekly':
+        // Semanalmente - mesmo(s) dia(s) da semana
+        nextDate.setDate(nextDate.getDate() + 7 * (recurrence.interval || 1));
+        break;
+
+      case 'monthly-date':
+        // Mensalmente - mesmo dia do mês (ex: dia 15 de cada mês)
+        nextDate.setMonth(nextDate.getMonth() + (recurrence.interval || 1));
+        break;
+
+      case 'monthly-weekday':
+        // Mensalmente - mesmo dia da semana (ex: primeira segunda-feira)
+        const weekOfMonth = Math.ceil(currentDate.getDate() / 7);
+        const dayOfWeek = currentDate.getDay();
+        nextDate.setMonth(nextDate.getMonth() + (recurrence.interval || 1));
+        nextDate.setDate(1);
+
+        // Encontrar o dia da semana correto
+        while (nextDate.getDay() !== dayOfWeek) {
+          nextDate.setDate(nextDate.getDate() + 1);
+        }
+
+        // Avançar para a semana correta
+        nextDate.setDate(nextDate.getDate() + (weekOfMonth - 1) * 7);
+        break;
+
+      case 'monthly-workday':
+        // Dia útil do mês (ex: 5º dia útil)
+        const workdayNumber = recurrence.workdayNumber || 1;
+        nextDate.setMonth(nextDate.getMonth() + (recurrence.interval || 1));
+        nextDate.setDate(1);
+
+        let workdaysCount = 0;
+        while (workdaysCount < workdayNumber) {
+          const day = nextDate.getDay();
+          // Segunda a sexta (1-5)
+          if (day !== 0 && day !== 6) {
+            workdaysCount++;
+          }
+          if (workdaysCount < workdayNumber) {
+            nextDate.setDate(nextDate.getDate() + 1);
+          }
+        }
+        break;
+
+      case 'yearly':
+        // Anualmente - mesma data
+        nextDate.setFullYear(nextDate.getFullYear() + (recurrence.interval || 1));
+        break;
+
+      case 'custom-weekdays':
+        // Dias da semana específicos (ex: seg, qua, sex)
+        const selectedDays = recurrence.weekdays || [];
+        nextDate.setDate(nextDate.getDate() + 1);
+
+        // Encontrar próximo dia da semana selecionado
+        while (!selectedDays.includes(nextDate.getDay())) {
+          nextDate.setDate(nextDate.getDate() + 1);
+        }
+        break;
+    }
+
+    // Verificar se passou da data de fim (se houver)
+    if (recurrence.endDate) {
+      const endDate = this.parseLocalDate(recurrence.endDate);
+      if (nextDate > endDate) {
+        return null; // Recorrência terminou
+      }
+    }
+
+    // Verificar se passou do limite de ocorrências (se houver)
+    if (recurrence.occurrences && recurrence.currentOccurrence >= recurrence.occurrences) {
+      return null; // Atingiu limite de ocorrências
+    }
+
+    return this.formatDateToString(nextDate);
+  }
+
+  // Formatar Date para string YYYY-MM-DD
+  formatDateToString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Criar próxima ocorrência de tarefa recorrente
+  async createNextRecurrence(completedTask) {
+    if (!completedTask.recurrence || !completedTask.recurrence.enabled) {
+      return null;
+    }
+
+    const nextDate = this.calculateNextRecurrence(completedTask);
+    if (!nextDate) {
+      return null; // Recorrência terminou
+    }
+
+    // Criar nova tarefa com a mesma configuração
+    const newTaskData = {
+      title: completedTask.title,
+      date: nextDate,
+      time: completedTask.time,
+      notes: completedTask.notes,
+      tags: completedTask.tags,
+      recurrence: {
+        ...completedTask.recurrence,
+        currentOccurrence: (completedTask.recurrence.currentOccurrence || 0) + 1
+      }
+    };
+
+    return await this.createTask(newTaskData);
+  }
+
+  // Override do toggleComplete para lidar com recorrência
+  async toggleComplete(id) {
+    const task = this.tasks.find(t => t.id === id);
+    if (!task) return null;
+
+    const wasCompleted = task.completed;
+    const updatedTask = await this.updateTask(id, { completed: !task.completed });
+
+    // Se a tarefa foi marcada como concluída e tem recorrência
+    if (!wasCompleted && updatedTask.completed && updatedTask.recurrence && updatedTask.recurrence.enabled) {
+      await this.createNextRecurrence(updatedTask);
+    }
+
+    return updatedTask;
+  }
+
+  // Obter descrição da recorrência para exibição
+  getRecurrenceDescription(recurrence) {
+    if (!recurrence || !recurrence.enabled) return null;
+
+    const interval = recurrence.interval || 1;
+    let description = '';
+
+    switch (recurrence.type) {
+      case 'daily':
+        description = interval === 1 ? 'Diariamente' : `A cada ${interval} dias`;
+        break;
+      case 'weekly':
+        description = interval === 1 ? 'Semanalmente' : `A cada ${interval} semanas`;
+        break;
+      case 'monthly-date':
+        description = interval === 1 ? 'Mensalmente' : `A cada ${interval} meses`;
+        break;
+      case 'monthly-weekday':
+        description = 'Mensalmente (mesmo dia da semana)';
+        break;
+      case 'monthly-workday':
+        const workday = recurrence.workdayNumber || 1;
+        description = `${workday}º dia útil do mês`;
+        break;
+      case 'yearly':
+        description = interval === 1 ? 'Anualmente' : `A cada ${interval} anos`;
+        break;
+      case 'custom-weekdays':
+        const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const selectedDays = (recurrence.weekdays || []).map(d => days[d]).join(', ');
+        description = `Toda ${selectedDays}`;
+        break;
+    }
+
+    // Adicionar informação de fim
+    if (recurrence.endDate) {
+      description += ` até ${this.formatDate(recurrence.endDate)}`;
+    } else if (recurrence.occurrences) {
+      description += ` (${recurrence.occurrences} vezes)`;
+    }
+
+    return description;
   }
 }
 
