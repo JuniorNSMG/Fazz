@@ -55,14 +55,20 @@ class TagsManager {
     };
 
     if (window.supabaseClient.isAuthenticated()) {
+      console.log('Criando tag no Supabase:', newTag);
       const { data, error } = await window.supabaseClient.createTag(newTag);
+      if (error) {
+        console.error('Erro ao criar tag no Supabase:', error);
+      }
       if (!error && data) {
+        console.log('Tag criada no Supabase:', data);
         this.tags.push(data);
         this.saveTags();
         return data;
       }
     }
 
+    console.log('Criando tag localmente:', newTag);
     this.tags.push(newTag);
     this.saveTags();
     return newTag;
@@ -106,11 +112,15 @@ class TagsManager {
   // Adicionar tag a uma tarefa
   async addTagToTask(taskId, tagId) {
     if (window.supabaseClient.isAuthenticated()) {
+      console.log('Adicionando tag à tarefa no Supabase:', { taskId, tagId });
       const { error } = await window.supabaseClient.addTagToTask(taskId, tagId);
       if (error) {
         console.error('Erro ao adicionar tag à tarefa:', error);
         return false;
       }
+      console.log('Tag adicionada à tarefa com sucesso');
+    } else {
+      console.log('Modo offline: salvando tag localmente');
     }
     return true;
   }
