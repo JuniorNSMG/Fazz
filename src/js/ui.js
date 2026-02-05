@@ -243,7 +243,7 @@ class UIManager {
     if (tasks.length === 0) return;
 
     const section = document.createElement('section');
-    section.className = 'task-section completed-section';
+    section.className = 'task-section completed-section collapsed';
     section.id = 'completedSection';
 
     const header = document.createElement('div');
@@ -253,7 +253,32 @@ class UIManager {
     titleElement.className = 'section-title';
     titleElement.textContent = `Concluídas (${tasks.length})`;
 
+    // Botão de expandir/recolher
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'btn-toggle-completed';
+    toggleBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    `;
+    toggleBtn.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+      toggleBtn.classList.toggle('expanded');
+    });
+
+    // Botão de limpar concluídas
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'btn-clear-completed';
+    clearBtn.textContent = 'Limpar';
+    clearBtn.addEventListener('click', () => this.handleClearCompleted());
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'completed-actions';
+    buttonGroup.appendChild(toggleBtn);
+    buttonGroup.appendChild(clearBtn);
+
     header.appendChild(titleElement);
+    header.appendChild(buttonGroup);
     section.appendChild(header);
 
     const taskList = document.createElement('ul');
@@ -534,6 +559,22 @@ class UIManager {
     if (confirm('Deseja reagendar todas as tarefas atrasadas para hoje?')) {
       const count = await window.tasksManager.rescheduleOverdue();
       alert(`${count} tarefa(s) reagendada(s) para hoje`);
+      this.renderTasks();
+    }
+  }
+
+  // Limpar tarefas concluídas
+  async handleClearCompleted() {
+    const completedCount = window.tasksManager.tasks.filter(t => t.completed).length;
+
+    if (completedCount === 0) {
+      alert('Não há tarefas concluídas para limpar');
+      return;
+    }
+
+    if (confirm(`Deseja limpar ${completedCount} tarefa(s) concluída(s)? Esta ação não pode ser desfeita.`)) {
+      const count = await window.tasksManager.clearCompleted();
+      alert(`${count} tarefa(s) removida(s)`);
       this.renderTasks();
     }
   }
