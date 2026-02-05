@@ -314,6 +314,111 @@ class SupabaseClient {
       return { data: [], error };
     }
   }
+
+  // ==========================================
+  // ANEXOS (Attachments)
+  // ==========================================
+
+  // Upload de arquivo
+  async uploadAttachment(taskId, file) {
+    if (!this.initialized || !this.user) return { data: null, error: 'Usuário não autenticado' };
+
+    try {
+      // Gerar caminho único: user_id/task_id/timestamp_filename
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.name}`;
+      const filePath = `${this.user.id}/${taskId}/${fileName}`;
+
+      // Upload para Storage
+      const { data: uploadData, error: uploadError } = await this.client.storage
+        .from('task-attachments')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Salvar metadata no banco
+      const attachmentData = {
+        user_id: this.user.id,
+        task_id: taskId,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        file_type: file.type
+      };
+
+      const { data, error } = await this.client
+        .from('attachments')
+        .insert([attachmentData])
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao fazer upload de anexo:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Buscar anexos de uma tarefa
+  async getTaskAttachments(taskId) {
+    if (!this.initialized || !this.user) return { data: [], error: 'Usuário não autenticado' };
+
+    try {
+      const { data, error } = await this.client
+        .from('attachments')
+        .select('*')
+        .eq('task_id', taskId)
+        .eq('user_id', this.user.id)
+        .order('created_at', { ascending: false });
+
+      return { data: data || [], error };
+    } catch (error) {
+      console.error('Erro ao buscar anexos:', error);
+      return { data: [], error };
+    }
+  }
+
+  // Obter URL pública temporária do arquivo
+  async getAttachmentUrl(filePath) {
+    if (!this.initialized) return { data: null, error: 'Não inicializado' };
+
+    try {
+      const { data, error } = await this.client.storage
+        .from('task-attachments')
+        .createSignedUrl(filePath, 3600); // URL válida por 1 hora
+
+      return { data: data?.signedUrl, error };
+    } catch (error) {
+      console.error('Erro ao gerar URL do anexo:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Deletar anexo
+  async deleteAttachment(id, filePath) {
+    if (!this.initialized || !this.user) return { error: 'Usuário não autenticado' };
+
+    try {
+      // Deletar do Storage
+      const { error: storageError } = await this.client.storage
+        .from('task-attachments')
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Deletar do banco
+      const { error } = await this.client
+        .from('attachments')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', this.user.id);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao deletar anexo:', error);
+      return { error };
+    }
+  }
 }
 
 // Exportar instância global

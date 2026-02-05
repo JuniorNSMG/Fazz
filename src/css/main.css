@@ -835,13 +835,15 @@ body {
    TAGS
    ========================================== */
 
-.tags-container {
+.tags-container,
+.attachments-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
 }
 
-.btn-add-tag {
+.btn-add-tag,
+.btn-add-attachment {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -857,12 +859,14 @@ body {
   align-self: flex-start;
 }
 
-.btn-add-tag:hover {
+.btn-add-tag:hover,
+.btn-add-attachment:hover {
   background-color: var(--color-primary-lighter);
   border-color: var(--color-primary);
 }
 
-.btn-add-tag svg {
+.btn-add-tag svg,
+.btn-add-attachment svg {
   width: 16px;
   height: 16px;
 }
@@ -961,6 +965,92 @@ textarea {
 .color-option.active {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-lighter);
+}
+
+/* ==========================================
+   ATTACHMENTS
+   ========================================== */
+
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.attachment-item:hover {
+  background-color: var(--color-background);
+  border-color: var(--color-primary-light);
+}
+
+.attachment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-primary-lighter);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.attachment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: var(--spacing-xs);
+}
+
+.attachment-size {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.attachment-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.btn-attachment-action {
+  padding: var(--spacing-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-attachment-action:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.btn-attachment-action.delete:hover {
+  background-color: #fee;
+  color: #e53e3e;
 }
 
 /* ==========================================

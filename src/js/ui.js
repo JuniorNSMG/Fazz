@@ -10,6 +10,8 @@ class UIManager {
     this.currentEditingId = null;
     this.selectedTags = [];
     this.selectedColor = 'blue';
+    this.currentAttachments = [];
+    this.pendingFiles = [];
   }
 
   init() {
@@ -99,6 +101,15 @@ class UIManager {
         option.classList.add('active');
         this.selectedColor = option.dataset.color;
       });
+    });
+
+    // Anexos
+    document.getElementById('btnAddAttachment')?.addEventListener('click', () => {
+      document.getElementById('fileInput')?.click();
+    });
+
+    document.getElementById('fileInput')?.addEventListener('change', (e) => {
+      this.handleFileSelect(e);
     });
   }
 
@@ -328,6 +339,8 @@ class UIManager {
   async openTaskModal(task = null) {
     this.currentEditingId = task?.id || null;
     this.selectedTags = [];
+    this.pendingFiles = [];
+    this.currentAttachments = [];
 
     const modalTitle = document.getElementById('modalTitle');
     const taskTitle = document.getElementById('taskTitle');
@@ -345,12 +358,18 @@ class UIManager {
       // Carregar tags da tarefa
       const taskTags = await window.tagsManager.getTaskTags(task.id);
       this.selectedTags = taskTags.map(tag => tag.id);
+
+      // Carregar anexos da tarefa
+      await this.loadAttachments(task.id);
     } else {
       modalTitle.textContent = 'Nova Tarefa';
       taskTitle.value = '';
       taskDate.value = new Date().toISOString().split('T')[0];
       taskTime.value = '';
       taskNotes.value = '';
+
+      // Limpar lista de anexos
+      this.renderPendingAttachments();
     }
 
     this.renderAvailableTags();
@@ -392,9 +411,32 @@ class UIManager {
       taskId = newTask.id;
     }
 
-    // Salvar tags
+    // Sincronizar tags
     const tagObjects = [];
-    if (this.selectedTags.length > 0) {
+
+    // Se estiver editando, obter tags atuais para comparar
+    let currentTags = [];
+    if (this.currentEditingId) {
+      currentTags = await window.tagsManager.getTaskTags(taskId);
+      const currentTagIds = currentTags.map(t => t.id);
+
+      // Remover tags que foram desmarcadas
+      for (const currentTag of currentTags) {
+        if (!this.selectedTags.includes(currentTag.id)) {
+          await window.tagsManager.removeTagFromTask(taskId, currentTag.id);
+        }
+      }
+
+      // Adicionar apenas tags novas
+      for (const tagId of this.selectedTags) {
+        if (!currentTagIds.includes(tagId)) {
+          await window.tagsManager.addTagToTask(taskId, tagId);
+        }
+        const tag = window.tagsManager.getTagById(tagId);
+        if (tag) tagObjects.push(tag);
+      }
+    } else {
+      // Nova tarefa: adicionar todas as tags
       for (const tagId of this.selectedTags) {
         await window.tagsManager.addTagToTask(taskId, tagId);
         const tag = window.tagsManager.getTagById(tagId);
@@ -402,15 +444,31 @@ class UIManager {
       }
     }
 
-    // Atualizar tarefa local com as tags
+    // Fazer upload de anexos pendentes
+    const uploadedAttachments = [];
+    if (this.pendingFiles.length > 0) {
+      for (const file of this.pendingFiles) {
+        const { data, error } = await window.attachmentsManager.uploadAttachment(taskId, file);
+        if (!error && data) {
+          uploadedAttachments.push(data);
+        } else {
+          console.error('Erro ao fazer upload de anexo:', file.name, error);
+        }
+      }
+    }
+
+    // Atualizar tarefa local com tags e anexos
     const task = window.tasksManager.tasks.find(t => t.id === taskId);
     if (task) {
       task.tags = tagObjects;
+      task.attachments = [...this.currentAttachments, ...uploadedAttachments];
       window.tasksManager.saveTasks();
     }
 
     this.closeTaskModal();
     this.selectedTags = [];
+    this.pendingFiles = [];
+    this.currentAttachments = [];
     this.renderTasks();
   }
 
@@ -652,6 +710,158 @@ class UIManager {
       // Re-renderizar o seletor para mostrar a nova tag
       this.renderExistingTagsSelector();
     }
+  }
+
+  // ==========================================
+  // ANEXOS
+  // ==========================================
+
+  async handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+      const validation = window.attachmentsManager.validateFile(file);
+      if (!validation.valid) {
+        alert(validation.error + `: ${file.name}`);
+        continue;
+      }
+
+      // Adicionar à lista de arquivos pendentes (serão enviados ao salvar a tarefa)
+      this.pendingFiles.push(file);
+    }
+
+    // Limpar input
+    e.target.value = '';
+
+    // Renderizar preview dos arquivos
+    this.renderPendingAttachments();
+  }
+
+  renderPendingAttachments() {
+    const attachmentsList = document.getElementById('attachmentsList');
+    if (!attachmentsList) return;
+
+    // Limpar lista
+    attachmentsList.innerHTML = '';
+
+    // Renderizar arquivos pendentes
+    this.pendingFiles.forEach((file, index) => {
+      const attachmentEl = this.createAttachmentElement({
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        pending: true,
+        index: index
+      });
+      attachmentsList.appendChild(attachmentEl);
+    });
+
+    // Renderizar anexos existentes (se editando tarefa)
+    this.currentAttachments.forEach(attachment => {
+      const attachmentEl = this.createAttachmentElement(attachment);
+      attachmentsList.appendChild(attachmentEl);
+    });
+  }
+
+  createAttachmentElement(attachment) {
+    const div = document.createElement('div');
+    div.className = 'attachment-item';
+
+    const icon = document.createElement('div');
+    icon.className = 'attachment-icon';
+    icon.innerHTML = window.attachmentsManager.getFileIcon(attachment.file_type);
+
+    const info = document.createElement('div');
+    info.className = 'attachment-info';
+
+    const name = document.createElement('div');
+    name.className = 'attachment-name';
+    name.textContent = attachment.file_name;
+
+    const size = document.createElement('div');
+    size.className = 'attachment-size';
+    size.textContent = window.attachmentsManager.formatFileSize(attachment.file_size);
+
+    info.appendChild(name);
+    info.appendChild(size);
+
+    const actions = document.createElement('div');
+    actions.className = 'attachment-actions';
+
+    // Botão de download (somente para anexos já salvos)
+    if (!attachment.pending) {
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'btn-attachment-action';
+      downloadBtn.type = 'button';
+      downloadBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      `;
+      downloadBtn.addEventListener('click', () => this.downloadAttachment(attachment));
+      actions.appendChild(downloadBtn);
+    }
+
+    // Botão de deletar
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-attachment-action delete';
+    deleteBtn.type = 'button';
+    deleteBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    `;
+    deleteBtn.addEventListener('click', () => {
+      if (attachment.pending) {
+        this.removePendingFile(attachment.index);
+      } else {
+        this.deleteAttachment(attachment);
+      }
+    });
+    actions.appendChild(deleteBtn);
+
+    div.appendChild(icon);
+    div.appendChild(info);
+    div.appendChild(actions);
+
+    return div;
+  }
+
+  removePendingFile(index) {
+    this.pendingFiles.splice(index, 1);
+    this.renderPendingAttachments();
+  }
+
+  async downloadAttachment(attachment) {
+    const url = await window.attachmentsManager.getAttachmentUrl(attachment);
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      alert('Erro ao baixar anexo');
+    }
+  }
+
+  async deleteAttachment(attachment) {
+    if (!confirm(`Deseja deletar o anexo "${attachment.file_name}"?`)) {
+      return;
+    }
+
+    const success = await window.attachmentsManager.deleteAttachment(attachment);
+    if (success) {
+      this.currentAttachments = this.currentAttachments.filter(a => a.id !== attachment.id);
+      this.renderPendingAttachments();
+    } else {
+      alert('Erro ao deletar anexo');
+    }
+  }
+
+  async loadAttachments(taskId) {
+    this.currentAttachments = await window.attachmentsManager.getTaskAttachments(taskId);
+    this.renderPendingAttachments();
   }
 }
 

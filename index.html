@@ -159,6 +159,19 @@
                         <div class="tags-list" id="tagsList"></div>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="taskAttachments">Anexos</label>
+                    <div class="attachments-container" id="attachmentsContainer">
+                        <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" style="display: none;" multiple>
+                        <button type="button" class="btn-add-attachment" id="btnAddAttachment">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            Adicionar Anexo
+                        </button>
+                        <div class="attachments-list" id="attachmentsList"></div>
+                    </div>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnCancelTask">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnSaveTask">Salvar</button>
@@ -285,6 +298,7 @@
     <script src="./src/js/supabase.js"></script>
     <script src="./src/js/auth.js"></script>
     <script src="./src/js/tags.js"></script>
+    <script src="./src/js/attachments.js"></script>
     <script src="./src/js/tasks.js"></script>
     <script src="./src/js/ui.js"></script>
     <script src="./src/js/app.js"></script>
