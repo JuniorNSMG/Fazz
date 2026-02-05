@@ -1,0 +1,119 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master, claude/** ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Verificar estrutura do projeto
+      run: |
+        echo "📁 Verificando estrutura do projeto..."
+
+        # Verificar arquivos principais
+        if [ -f "index.html" ]; then
+          echo "✅ index.html encontrado"
+        else
+          echo "❌ index.html não encontrado"
+          exit 1
+        fi
+
+        if [ -f "manifest.json" ]; then
+          echo "✅ manifest.json encontrado"
+        else
+          echo "❌ manifest.json não encontrado"
+          exit 1
+        fi
+
+        if [ -d "src" ]; then
+          echo "✅ Diretório src encontrado"
+        else
+          echo "❌ Diretório src não encontrado"
+          exit 1
+        fi
+
+    - name: Validar arquivos JavaScript
+      run: |
+        echo "🔍 Validando sintaxe JavaScript..."
+
+        # Encontrar todos os arquivos .js
+        JS_FILES=$(find . -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*")
+
+        if [ -z "$JS_FILES" ]; then
+          echo "⚠️  Nenhum arquivo JavaScript encontrado"
+          exit 0
+        fi
+
+        # Usar Node.js para validar sintaxe básica
+        for file in $JS_FILES; do
+          echo "Verificando: $file"
+          node --check "$file" || exit 1
+        done
+
+        echo "✅ Todos os arquivos JavaScript são válidos"
+
+    - name: Validar HTML
+      run: |
+        echo "🔍 Validando estrutura HTML..."
+
+        # Verificar se index.html não está vazio
+        if [ -s "index.html" ]; then
+          echo "✅ index.html não está vazio"
+
+          # Verificar tags básicas
+          if grep -q "<html" index.html; then
+            echo "✅ Tag <html> encontrada"
+          else
+            echo "⚠️  Tag <html> não encontrada"
+          fi
+
+          if grep -q "<head" index.html; then
+            echo "✅ Tag <head> encontrada"
+          else
+            echo "⚠️  Tag <head> não encontrada"
+          fi
+
+          if grep -q "<body" index.html; then
+            echo "✅ Tag <body> encontrada"
+          else
+            echo "⚠️  Tag <body> não encontrada"
+          fi
+        else
+          echo "❌ index.html está vazio"
+          exit 1
+        fi
+
+    - name: Verificar configuração do Supabase
+      run: |
+        echo "🔍 Verificando arquivos de configuração..."
+
+        if [ -f "src/js/supabase.js" ]; then
+          echo "✅ supabase.js encontrado"
+        else
+          echo "⚠️  supabase.js não encontrado"
+        fi
+
+        if [ -f "src/js/config.js" ]; then
+          echo "✅ config.js encontrado"
+        else
+          echo "⚠️  config.js não encontrado"
+        fi
+
+    - name: Resultado final
+      run: |
+        echo ""
+        echo "🎉 Todos os testes básicos passaram!"
+        echo "✨ O projeto está estruturado corretamente"
