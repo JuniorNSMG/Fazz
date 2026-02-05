@@ -280,8 +280,8 @@ class UIManager {
 
   // Renderizar Tarefas Concluídas
   renderCompletedTasks(tasks) {
-    const dateSectionsContainer = document.getElementById('dateSections');
-    if (!dateSectionsContainer) return;
+    const tasksContainer = document.getElementById('tasksContainer');
+    if (!tasksContainer) return;
 
     // Remover seção antiga de concluídas (se existir)
     const oldSection = document.getElementById('completedSection');
@@ -331,7 +331,7 @@ class UIManager {
     });
 
     section.appendChild(taskList);
-    dateSectionsContainer.appendChild(section);
+    tasksContainer.appendChild(section);
   }
 
   // Criar Elemento de Tarefa
