@@ -171,10 +171,35 @@ body {
   padding: 0 var(--spacing-md);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .header-time {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+
+.sync-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .header-actions {

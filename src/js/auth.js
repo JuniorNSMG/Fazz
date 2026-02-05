@@ -10,13 +10,13 @@ class AuthManager {
     this.registerForm = null;
   }
 
-  init() {
+  async init() {
     this.authModal = document.getElementById('authModal');
     this.loginForm = document.getElementById('loginForm');
     this.registerForm = document.getElementById('registerForm');
 
     this.setupEventListeners();
-    this.checkExistingSession();
+    await this.checkExistingSession();
   }
 
   setupEventListeners() {
@@ -79,6 +79,15 @@ class AuthManager {
       return;
     }
 
+    // Salvar informação de usuário autenticado no localStorage
+    if (data && data.user) {
+      localStorage.setItem(CONFIG.storage.USER_KEY, JSON.stringify({
+        guest: false,
+        email: data.user.email,
+        id: data.user.id
+      }));
+    }
+
     this.closeAuthModal();
     await window.app.loadTasks();
   }
@@ -128,23 +137,32 @@ class AuthManager {
     window.app.loadTasks();
   }
 
-  checkExistingSession() {
+  async checkExistingSession() {
     // Verificar se tem usuário no localStorage
     const storedUser = localStorage.getItem(CONFIG.storage.USER_KEY);
 
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user.guest) {
-        this.isGuest = true;
-        this.closeAuthModal();
-        return;
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.guest) {
+          this.isGuest = true;
+          // Modal já começa oculto, não precisa fechar
+          return;
+        }
+      } catch (e) {
+        console.error('Erro ao ler usuário do localStorage:', e);
       }
     }
 
-    // Verificar se tem sessão do Supabase
-    if (window.supabaseClient.isAuthenticated()) {
-      this.closeAuthModal();
-      return;
+    // Verificar se tem sessão do Supabase (aguardar verificação)
+    if (window.supabaseClient.initialized) {
+      // Aguardar um pouco para garantir que a sessão foi verificada
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (window.supabaseClient.isAuthenticated()) {
+        // Modal já começa oculto, não precisa fechar
+        return;
+      }
     }
 
     // Se não tem nada, mostrar modal de auth
