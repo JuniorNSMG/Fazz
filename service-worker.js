@@ -4,20 +4,20 @@
 // ==========================================
 
 const CACHE_NAME = 'fazz-v1.0.0';
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = './offline.html';
 
 // Arquivos para cachear na instalação
 const STATIC_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/src/css/main.css',
-  '/src/js/config.js',
-  '/src/js/supabase.js',
-  '/src/js/auth.js',
-  '/src/js/tasks.js',
-  '/src/js/ui.js',
-  '/src/js/app.js'
+  './',
+  './index.html',
+  './manifest.json',
+  './src/css/main.css',
+  './src/js/config.js',
+  './src/js/supabase.js',
+  './src/js/auth.js',
+  './src/js/tasks.js',
+  './src/js/ui.js',
+  './src/js/app.js'
 ];
 
 // Instalação do Service Worker
