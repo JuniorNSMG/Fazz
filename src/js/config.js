@@ -3,10 +3,10 @@
 // ==========================================
 
 const CONFIG = {
-  // Supabase - Preencher após criar projeto
+  // Supabase
   supabase: {
-    url: '', // Será preenchido depois
-    anonKey: '' // Será preenchido depois
+    url: 'https://rajutjzpmnfxjdnacpvm.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhanV0anpwbW5meGpkbmFjcHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNDg1NzEsImV4cCI6MjA4NTgyNDU3MX0.vZYAtkkD4aQbiN5k7AkUHTVH2fLlxcEbAqnoJyla8c0'
   },
 
   // Storage Keys
