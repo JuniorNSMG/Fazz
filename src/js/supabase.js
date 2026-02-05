@@ -149,11 +149,24 @@ class SupabaseClient {
         user_id: this.user.id
       };
 
+      console.log('☁️ SUPABASE createTask');
+      console.log('  📤 ENVIANDO:', taskData);
+      console.log('  📅 Data enviada:', taskData.date);
+
       const { data, error } = await this.client
         .from('tasks')
         .insert([taskData])
         .select()
         .single();
+
+      console.log('  📥 RECEBIDO:', data);
+      console.log('  📅 Data recebida:', data ? data.date : 'null');
+
+      if (data && data.date !== taskData.date) {
+        console.warn('⚠️ ATENÇÃO: Data mudou no Supabase!');
+        console.warn('  Enviada:', taskData.date);
+        console.warn('  Recebida:', data.date);
+      }
 
       return { data, error };
     } catch (error) {
