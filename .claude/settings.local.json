@@ -7,7 +7,12 @@
       "Bash(git commit:*)",
       "Bash(git push)",
       "Bash(git push:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(gh repo view:*)",
+      "Bash(git clone:*)",
+      "Bash(npm install:*)",
+      "Bash(uipro init:*)",
+      "Bash(python3:*)"
     ]
   }
 }

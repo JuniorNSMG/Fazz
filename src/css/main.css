@@ -1,7 +1,13 @@
 /* ==========================================
    FAZZ - Todo & Agenda PWA
    Design System: Clean, Modern, Blue & White
+   Enhanced with UI/UX Pro Max recommendations
    ========================================== */
+
+/* ==========================================
+   GOOGLE FONTS - Plus Jakarta Sans
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 /* ==========================================
    CSS VARIABLES
@@ -41,8 +47,8 @@
   --spacing-xl: 2rem;      /* 32px */
   --spacing-2xl: 3rem;     /* 48px */
 
-  /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  /* Typography - Plus Jakarta Sans (UI/UX Pro Max Recommendation) */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   --font-size-xs: 0.75rem;    /* 12px */
   --font-size-sm: 0.875rem;   /* 14px */
   --font-size-base: 1rem;     /* 16px */
@@ -51,6 +57,7 @@
   --font-size-2xl: 1.5rem;    /* 24px */
   --font-size-3xl: 2rem;      /* 32px */
 
+  --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -73,10 +80,10 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-  /* Transitions */
-  --transition-fast: 150ms ease-in-out;
-  --transition-base: 200ms ease-in-out;
-  --transition-slow: 300ms ease-in-out;
+  /* Transitions - UI/UX Pro Max: Fast, clean transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
 
   /* Z-index */
   --z-header: 100;
@@ -136,13 +143,35 @@ a {
   color: inherit;
 }
 
-/* Accessibility - Reduced Motion */
+/* Accessibility - Reduced Motion (UI/UX Pro Max Compliance) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transform: none !important;
   }
+}
+
+/* Accessibility - Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Accessibility - Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-sm) var(--spacing-md);
+  z-index: 9999;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* ==========================================
@@ -192,15 +221,22 @@ body {
   align-items: center;
   justify-content: center;
   transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .btn-icon:hover {
   background-color: var(--color-surface-hover);
   color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
 .btn-icon:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(0);
+}
+
+.btn-icon:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .app-main {
@@ -262,15 +298,27 @@ body {
   align-items: center;
   gap: var(--spacing-xs);
   transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .btn-reschedule:hover {
   background-color: var(--color-primary-lighter);
+  transform: translateY(-1px);
+}
+
+.btn-reschedule:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .btn-reschedule svg {
   width: 16px;
   height: 16px;
+  transition: transform var(--transition-fast);
+}
+
+.btn-reschedule:hover svg {
+  transform: translateY(2px);
 }
 
 /* ==========================================
@@ -298,12 +346,17 @@ body {
 .task-item:hover {
   background-color: var(--color-surface-hover);
   border-color: var(--color-border);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .task-item:active {
   transform: translateY(0);
+}
+
+.task-item:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .task-checkbox {
@@ -316,13 +369,18 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
   margin-top: 2px;
 }
 
 .task-checkbox:hover {
   border-color: var(--color-primary);
   background-color: var(--color-primary-lighter);
+  transform: scale(1.1);
+}
+
+.task-checkbox:active {
+  transform: scale(0.95);
 }
 
 .task-item.completed .task-checkbox {
@@ -462,18 +520,29 @@ body {
   color: var(--color-text-tertiary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
   min-width: 60px;
+  cursor: pointer;
 }
 
 .nav-item svg {
   width: 24px;
   height: 24px;
+  transition: transform var(--transition-fast);
 }
 
 .nav-item:hover {
   color: var(--color-primary);
   background-color: var(--color-primary-lighter);
+}
+
+.nav-item:hover svg {
+  transform: translateY(-2px);
+}
+
+.nav-item:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .nav-item.active {
@@ -503,15 +572,29 @@ body {
   justify-content: center;
   z-index: var(--z-fab);
   transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.fab svg {
+  transition: transform var(--transition-fast);
 }
 
 .fab:hover {
-  transform: scale(1.05);
+  transform: scale(1.1) translateY(-2px);
   box-shadow: var(--shadow-xl);
 }
 
+.fab:hover svg {
+  transform: rotate(90deg);
+}
+
 .fab:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(0);
+}
+
+.fab:focus {
+  outline: 3px solid var(--color-primary-light);
+  outline-offset: 3px;
 }
 
 /* ==========================================
@@ -649,6 +732,13 @@ body {
   box-shadow: 0 0 0 3px var(--color-primary-lighter);
 }
 
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .form-group input::placeholder {
   color: var(--color-text-tertiary);
 }
@@ -669,12 +759,17 @@ body {
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+}
+
+.btn:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .btn-primary {
@@ -685,19 +780,23 @@ body {
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: scale(0.98) translateY(0);
 }
 
 .btn-secondary {
   background-color: var(--color-surface);
   color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
   background-color: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
 .btn-text {
@@ -777,6 +876,27 @@ body {
 
 .text-center {
   text-align: center;
+}
+
+/* Performance optimization - GPU acceleration for animations */
+.task-item,
+.btn,
+.btn-icon,
+.fab,
+.nav-item,
+.btn-primary,
+.btn-secondary,
+.task-checkbox {
+  will-change: transform;
+}
+
+/* Remove will-change after animation completes */
+.task-item:not(:hover),
+.btn:not(:hover),
+.btn-icon:not(:hover),
+.fab:not(:hover),
+.nav-item:not(:hover) {
+  will-change: auto;
 }
 
 /* ==========================================
@@ -881,7 +1001,7 @@ body {
   color: var(--color-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  transition: all var(--transition-base);
+  transition: all var(--transition-fast);
   cursor: pointer;
   align-self: flex-start;
 }
@@ -890,6 +1010,14 @@ body {
 .btn-add-attachment:hover {
   background-color: var(--color-primary-lighter);
   border-color: var(--color-primary);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.btn-add-tag:focus,
+.btn-add-attachment:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .btn-add-tag svg,
@@ -918,10 +1046,15 @@ body {
 .tag-removable {
   padding-right: var(--spacing-xs);
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .tag-removable:hover {
-  opacity: 0.8;
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.tag-removable:active {
   transform: scale(0.95);
 }
 
