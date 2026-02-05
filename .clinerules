@@ -2,6 +2,7 @@
 
 ## Git e Deploy
 - SEMPRE fazer commits e push DIRETO para a branch MAIN
+- SEMPRE utilizar potuguês do Brasil na descrição do commit
 - NUNCA usar outras branches sem permissão explícita
 - Comando correto: `git push origin HEAD:main` ou `git push origin crazy-hodgkin:main`
 - Após cada commit, SEMPRE fazer push para main imediatamente
