@@ -253,34 +253,32 @@
                 </button>
             </div>
 
-            <div class="tag-selector-content-minimal">
+            <form class="modal-form-simple" id="tagForm">
                 <!-- Lista de tags existentes -->
-                <div class="existing-tags-list-minimal" id="existingTagsList">
+                <div class="tags-grid" id="existingTagsList">
                     <!-- Tags serão inseridas aqui -->
                 </div>
-                <div class="no-tags-message" id="noTagsMessage" style="display: none;">
-                    <p>Nenhuma tag criada ainda</p>
+
+                <!-- Criar nova tag -->
+                <div class="new-item-section">
+                    <input type="text" id="tagName" name="name" required placeholder="Nova tag..." autocomplete="off" class="input-simple">
+                    <div class="colors-row" id="colorPicker">
+                        <button type="button" class="color-btn active" data-color="blue"></button>
+                        <button type="button" class="color-btn" data-color="green"></button>
+                        <button type="button" class="color-btn" data-color="orange"></button>
+                        <button type="button" class="color-btn" data-color="purple"></button>
+                        <button type="button" class="color-btn" data-color="pink"></button>
+                        <button type="button" class="color-btn" data-color="teal"></button>
+                        <button type="button" class="color-btn" data-color="yellow"></button>
+                        <button type="button" class="color-btn" data-color="red"></button>
+                    </div>
                 </div>
 
-                <!-- Formulário de nova tag inline -->
-                <form class="tag-form-minimal" id="tagForm">
-                    <input type="text" id="tagName" name="name" required placeholder="+ Nova tag..." autocomplete="off" class="input-new-tag">
-                    <div class="color-picker-minimal" id="colorPicker">
-                        <button type="button" class="color-dot active" data-color="blue"></button>
-                        <button type="button" class="color-dot" data-color="green"></button>
-                        <button type="button" class="color-dot" data-color="orange"></button>
-                        <button type="button" class="color-dot" data-color="purple"></button>
-                        <button type="button" class="color-dot" data-color="pink"></button>
-                        <button type="button" class="color-dot" data-color="teal"></button>
-                        <button type="button" class="color-dot" data-color="yellow"></button>
-                        <button type="button" class="color-dot" data-color="red"></button>
-                    </div>
-                    <div class="form-actions-minimal form-actions-centered">
-                        <button type="button" class="btn-text" id="btnCancelNewTag">Cancelar</button>
-                        <button type="submit" class="btn-primary-minimal" id="btnSaveTag">Criar</button>
-                    </div>
-                </form>
-            </div>
+                <div class="form-actions-minimal form-actions-centered">
+                    <button type="button" class="btn-text" id="btnCancelNewTag">Fechar</button>
+                    <button type="submit" class="btn-primary-minimal" id="btnSaveTag">Criar Tag</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -326,10 +324,10 @@
                     </svg>
                 </button>
             </div>
-            <div class="recurrence-form-minimal">
-                <div class="form-group">
-                    <label for="recurrenceType">Tipo de Recorrência</label>
-                    <select id="recurrenceType" class="form-control">
+            <div class="modal-form-simple">
+                <div class="field-group">
+                    <label>TIPO</label>
+                    <select id="recurrenceType" class="select-simple">
                         <option value="">Selecione...</option>
                         <option value="daily">Diariamente</option>
                         <option value="weekly">Semanalmente</option>
@@ -341,67 +339,75 @@
                     </select>
                 </div>
 
-                <div class="form-group" id="intervalGroup" style="display: none;">
-                    <label for="recurrenceInterval">Repetir a cada</label>
+                <div class="field-group" id="intervalGroup" style="display: none;">
+                    <label>REPETIR A CADA</label>
                     <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
-                        <input type="number" id="recurrenceInterval" class="form-control" min="1" value="1" style="flex: 0 0 80px;">
-                        <span id="intervalLabel">dia(s)</span>
+                        <input type="number" id="recurrenceInterval" class="input-simple" min="1" value="1" style="width: 80px;">
+                        <span id="intervalLabel" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">dia(s)</span>
                     </div>
                 </div>
 
-                <div class="form-group" id="workdayGroup" style="display: none;">
-                    <label for="workdayNumber">Dia útil do mês</label>
-                    <input type="number" id="workdayNumber" class="form-control" min="1" max="31" value="1" placeholder="Ex: 5 (5º dia útil do mês)">
+                <div class="field-group" id="workdayGroup" style="display: none;">
+                    <label>DIA ÚTIL DO MÊS</label>
+                    <input type="number" id="workdayNumber" class="input-simple" min="1" max="31" value="1" placeholder="Ex: 5">
                 </div>
 
-                <div class="form-group" id="weekdaysGroup" style="display: none;">
-                    <label>Dias da semana</label>
-                    <div class="weekdays-selector">
-                        <label class="weekday-option">
-                            <input type="checkbox" value="0"> Dom
+                <div class="field-group" id="weekdaysGroup" style="display: none;">
+                    <label>DIAS DA SEMANA</label>
+                    <div class="weekdays-grid">
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="0">
+                            <span>Dom</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="1"> Seg
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="1">
+                            <span>Seg</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="2"> Ter
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="2">
+                            <span>Ter</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="3"> Qua
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="3">
+                            <span>Qua</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="4"> Qui
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="4">
+                            <span>Qui</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="5"> Sex
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="5">
+                            <span>Sex</span>
                         </label>
-                        <label class="weekday-option">
-                            <input type="checkbox" value="6"> Sáb
+                        <label class="weekday-btn">
+                            <input type="checkbox" value="6">
+                            <span>Sáb</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="recurrenceEndType">Terminar</label>
-                    <select id="recurrenceEndType" class="form-control">
+                <div class="field-group">
+                    <label>TERMINAR</label>
+                    <select id="recurrenceEndType" class="select-simple">
                         <option value="never">Nunca</option>
                         <option value="date">Em uma data específica</option>
                         <option value="count">Após N ocorrências</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="endDateGroup" style="display: none;">
-                    <label for="recurrenceEndDate">Data de término</label>
-                    <input type="date" id="recurrenceEndDate" class="form-control">
+                <div class="field-group" id="endDateGroup" style="display: none;">
+                    <label>DATA DE TÉRMINO</label>
+                    <input type="date" id="recurrenceEndDate" class="input-simple">
                 </div>
 
-                <div class="form-group" id="endCountGroup" style="display: none;">
-                    <label for="recurrenceEndCount">Número de ocorrências</label>
-                    <input type="number" id="recurrenceEndCount" class="form-control" min="1" value="10">
+                <div class="field-group" id="endCountGroup" style="display: none;">
+                    <label>NÚMERO DE OCORRÊNCIAS</label>
+                    <input type="number" id="recurrenceEndCount" class="input-simple" min="1" value="10">
                 </div>
+
                 <div class="form-actions-minimal form-actions-centered">
-                    <button type="button" class="btn-text" id="btnRemoveRecurrence" style="display: none; color: var(--color-overdue);">Remover</button>
-                    <button type="button" class="btn-text" id="btnCancelRecurrence">Cancelar</button>
+                    <button type="button" class="btn-text btn-danger-text" id="btnRemoveRecurrence" style="display: none;">Remover</button>
+                    <button type="button" class="btn-text" id="btnCancelRecurrence">Fechar</button>
                     <button type="button" class="btn-primary-minimal" id="btnSaveRecurrence">Salvar</button>
                 </div>
             </div>
