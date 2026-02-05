@@ -414,7 +414,7 @@ class UIManager {
     } else {
       modalTitle.textContent = 'Nova Tarefa';
       taskTitle.value = '';
-      taskDate.value = new Date().toISOString().split('T')[0];
+      taskDate.value = window.tasksManager.getTodayString();
       taskTime.value = '';
       taskNotes.value = '';
 
