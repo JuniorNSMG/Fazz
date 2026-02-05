@@ -1947,46 +1947,32 @@ textarea {
 /* Botões de opções (Tags, Anexos, Recorrência) */
 .form-options-row {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
+  justify-content: flex-start;
 }
 
-.btn-option {
+.btn-option-icon {
   background: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm);
   cursor: pointer;
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
-  flex: 1;
+  width: 40px;
+  height: 40px;
 }
 
-.btn-option span {
-  white-space: nowrap;
-}
-
-.btn-option-half {
-  flex: 1;
-}
-
-.btn-option-full {
-  flex: 1;
-  width: 100%;
-}
-
-.btn-option:hover {
+.btn-option-icon:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background-color: var(--color-primary-lighter);
 }
 
-.btn-option.active {
+.btn-option-icon.active {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background-color: var(--color-primary-lighter);
@@ -2222,3 +2208,168 @@ textarea {
     font-size: var(--font-size-lg);
   }
 }
+
+/* ==========================================
+   MODAL DE TAGS - MINIMALISTA
+   ========================================== */
+
+.tag-selector-content-minimal {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-height: 60vh;
+}
+
+.existing-tags-list-minimal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  min-height: 40px;
+}
+
+.existing-tags-list-minimal:empty + .no-tags-message {
+  display: block !important;
+}
+
+.no-tags-message {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-lg) 0;
+}
+
+.tag-form-minimal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.input-new-tag {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+}
+
+.input-new-tag:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+}
+
+.color-picker-minimal {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.color-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.color-dot.active {
+  border-color: var(--color-text-primary);
+  transform: scale(1.1);
+}
+
+.color-dot[data-color="blue"] { background-color: #4A90E2; }
+.color-dot[data-color="green"] { background-color: #4CAF50; }
+.color-dot[data-color="orange"] { background-color: #FF9800; }
+.color-dot[data-color="purple"] { background-color: #9C27B0; }
+.color-dot[data-color="pink"] { background-color: #E91E63; }
+.color-dot[data-color="teal"] { background-color: #009688; }
+.color-dot[data-color="yellow"] { background-color: #FFC107; }
+.color-dot[data-color="red"] { background-color: #F44336; }
+
+/* ==========================================
+   MODAL DE RECORRÊNCIA - MINIMALISTA
+   ========================================== */
+
+.recurrence-form-minimal {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.recurrence-form-minimal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.recurrence-form-minimal label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recurrence-form-minimal select,
+.recurrence-form-minimal input[type="number"],
+.recurrence-form-minimal input[type="date"] {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  transition: all var(--transition-fast);
+}
+
+.recurrence-form-minimal select:focus,
+.recurrence-form-minimal input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+}
+
+.weekdays-selector {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.weekday-option {
+  flex: 1;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.weekday-option input[type="checkbox"] {
+  display: none;
+}
+
+.weekday-option input[type="checkbox"]:checked + * {
+  background-color: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.weekday-option:has(input:checked) {
+  background-color: var(--color-primary-lighter);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
