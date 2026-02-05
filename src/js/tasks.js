@@ -93,20 +93,13 @@ class TasksManager {
 
     // Se estiver autenticado, salvar no Supabase
     if (window.supabaseClient.isAuthenticated()) {
-      // Remover recurrence antes de enviar (Supabase não tem esse campo)
-      const { recurrence, ...supabaseTask } = newTask;
-      const { data, error } = await window.supabaseClient.createTask(supabaseTask);
+      const { data, error } = await window.supabaseClient.createTask(newTask);
 
       if (!error && data) {
-        // Adicionar recurrence de volta aos dados locais
-        const taskWithRecurrence = {
-          ...data,
-          tags: [], // Inicializar tags vazio
-          recurrence: newTask.recurrence // Preservar recurrence local
-        };
-        this.tasks.push(taskWithRecurrence);
+        data.tags = []; // Inicializar tags vazio
+        this.tasks.push(data);
         this.saveTasks();
-        return taskWithRecurrence;
+        return data;
       }
     }
 
@@ -129,18 +122,12 @@ class TasksManager {
 
     // Se estiver autenticado, atualizar no Supabase
     if (window.supabaseClient.isAuthenticated()) {
-      // Remover recurrence antes de enviar (Supabase não tem esse campo)
-      const { recurrence, ...supabaseUpdates } = updates;
-      const { data, error } = await window.supabaseClient.updateTask(id, supabaseUpdates);
+      const { data, error } = await window.supabaseClient.updateTask(id, updates);
 
       if (!error && data) {
-        // Mesclar dados do Supabase com recurrence local
-        this.tasks[taskIndex] = {
-          ...data,
-          recurrence: updates.recurrence || this.tasks[taskIndex].recurrence
-        };
+        this.tasks[taskIndex] = data;
         this.saveTasks();
-        return this.tasks[taskIndex];
+        return data;
       }
     }
 
