@@ -144,6 +144,20 @@ class UIManager {
     }
   }
 
+  showSyncIndicator() {
+    const syncIndicator = document.getElementById('syncIndicator');
+    if (syncIndicator) {
+      syncIndicator.style.display = 'flex';
+    }
+  }
+
+  hideSyncIndicator() {
+    const syncIndicator = document.getElementById('syncIndicator');
+    if (syncIndicator) {
+      syncIndicator.style.display = 'none';
+    }
+  }
+
   // Renderizar todas as tarefas
   renderTasks() {
     const grouped = window.tasksManager.getGroupedTasks();

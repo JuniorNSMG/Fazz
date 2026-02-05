@@ -18,7 +18,14 @@
 <body>
     <!-- Header -->
     <header class="app-header">
-        <div class="header-time" id="currentTime">20:54</div>
+        <div class="header-left">
+            <div class="header-time" id="currentTime">20:54</div>
+            <div class="sync-indicator" id="syncIndicator" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sync-spinner">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+            </div>
+        </div>
         <div class="header-actions">
             <button class="btn-icon" id="btnView" aria-label="Visualização">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -181,7 +188,7 @@
     </div>
 
     <!-- Modal: Login/Register -->
-    <div class="modal active" id="authModal">
+    <div class="modal" id="authModal">
         <div class="modal-overlay"></div>
         <div class="modal-content auth-modal">
             <div class="auth-header">

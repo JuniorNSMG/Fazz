@@ -11,18 +11,27 @@ class FazzApp {
     console.log('🚀 Inicializando Fazz...');
 
     try {
-      // 1. Inicializar Supabase
-      await window.supabaseClient.init();
+      // 1. Carregar cache local PRIMEIRO (instantâneo)
+      window.tasksManager.loadTasksFromCache();
 
-      // 2. Inicializar Auth
-      window.authManager.init();
-
-      // 3. Inicializar UI
+      // 2. Inicializar UI
       window.uiManager.init();
 
-      // 4. Carregar tarefas (se já estiver autenticado)
+      // 3. Se já tem cache, renderizar imediatamente
+      if (window.tasksManager.tasks.length > 0) {
+        window.uiManager.renderTasks();
+      }
+
+      // 4. Inicializar Supabase
+      await window.supabaseClient.init();
+
+      // 5. Inicializar Auth (verificar sessão)
+      await window.authManager.init();
+
+      // 6. Sincronizar com servidor em background (se autenticado)
       if (window.authManager.isGuest || window.supabaseClient.isAuthenticated()) {
-        await this.loadTasks();
+        // Não aguardar - sincroniza em background
+        this.syncTasksInBackground();
       }
 
       this.initialized = true;
@@ -41,6 +50,31 @@ class FazzApp {
     }
   }
 
+  async syncTasksInBackground() {
+    try {
+      // Mostrar indicador de sincronização
+      if (window.uiManager.showSyncIndicator) {
+        window.uiManager.showSyncIndicator();
+      }
+
+      // Sincronizar com servidor
+      await window.tasksManager.syncWithServer();
+
+      // Atualizar UI com dados sincronizados
+      window.uiManager.renderTasks();
+
+      // Esconder indicador
+      if (window.uiManager.hideSyncIndicator) {
+        window.uiManager.hideSyncIndicator();
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar em background:', error);
+      if (window.uiManager.hideSyncIndicator) {
+        window.uiManager.hideSyncIndicator();
+      }
+    }
+  }
+
   async syncTasks() {
     if (!window.supabaseClient.isAuthenticated()) {
       console.log('Não autenticado, pulando sincronização');
@@ -48,11 +82,24 @@ class FazzApp {
     }
 
     try {
-      await window.tasksManager.loadTasks();
+      // Mostrar indicador
+      if (window.uiManager.showSyncIndicator) {
+        window.uiManager.showSyncIndicator();
+      }
+
+      await window.tasksManager.syncWithServer();
       window.uiManager.renderTasks();
       console.log('✓ Tarefas sincronizadas');
+
+      // Esconder indicador
+      if (window.uiManager.hideSyncIndicator) {
+        window.uiManager.hideSyncIndicator();
+      }
     } catch (error) {
       console.error('Erro ao sincronizar tarefas:', error);
+      if (window.uiManager.hideSyncIndicator) {
+        window.uiManager.hideSyncIndicator();
+      }
     }
   }
 }

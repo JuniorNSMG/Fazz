@@ -8,7 +8,49 @@ class TasksManager {
     this.currentEditingTask = null;
   }
 
-  // Carregar tarefas (do Supabase ou localStorage)
+  // Carregar tarefas do cache local (síncrono e rápido)
+  loadTasksFromCache() {
+    const stored = localStorage.getItem(CONFIG.storage.TASKS_KEY);
+    if (stored) {
+      try {
+        this.tasks = JSON.parse(stored);
+        console.log(`📦 ${this.tasks.length} tarefas carregadas do cache local`);
+      } catch (e) {
+        console.error('Erro ao carregar tarefas do localStorage:', e);
+        this.tasks = [];
+      }
+    }
+    return this.tasks;
+  }
+
+  // Sincronizar com o servidor (assíncrono)
+  async syncWithServer() {
+    // Se estiver autenticado no Supabase, buscar de lá
+    if (window.supabaseClient.isAuthenticated()) {
+      console.log('🔄 Sincronizando com o servidor...');
+      const { data, error } = await window.supabaseClient.fetchTasks();
+
+      if (!error && data) {
+        // Carregar tags e anexos de cada tarefa
+        for (const task of data) {
+          const tags = await window.tagsManager.getTaskTags(task.id);
+          task.tags = tags;
+
+          const attachments = await window.attachmentsManager.getTaskAttachments(task.id);
+          task.attachments = attachments;
+        }
+
+        this.tasks = data;
+        this.saveTasks(); // Salvar localmente como backup
+        console.log(`✓ ${this.tasks.length} tarefas sincronizadas do servidor`);
+        return this.tasks;
+      }
+    }
+
+    return this.tasks;
+  }
+
+  // Carregar tarefas (do Supabase ou localStorage) - mantido para compatibilidade
   async loadTasks() {
     // Se estiver autenticado no Supabase, buscar de lá
     if (window.supabaseClient.isAuthenticated()) {
