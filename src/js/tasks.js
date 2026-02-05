@@ -8,6 +8,28 @@ class TasksManager {
     this.currentEditingTask = null;
   }
 
+  /**
+   * Cria um objeto Date a partir de uma string YYYY-MM-DD no timezone local
+   * Evita problemas de conversão UTC que mudam a data
+   */
+  parseLocalDate(dateStr) {
+    if (!dateStr) return null;
+
+    // Se já é um objeto Date, retornar
+    if (dateStr instanceof Date) return dateStr;
+
+    // Dividir a string "YYYY-MM-DD" em partes
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return new Date(dateStr); // Fallback
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexed
+    const day = parseInt(parts[2], 10);
+
+    // Criar Date usando construtor com parâmetros (usa timezone local)
+    return new Date(year, month, day);
+  }
+
   // Carregar tarefas com estratégia cache-first
   async loadTasks(forceSync = false) {
     console.log(`📥 loadTasks chamado (forceSync: ${forceSync})`);
@@ -363,7 +385,10 @@ class TasksManager {
         return;
       }
 
-      const taskDate = new Date(task.date);
+      // Usar parseLocalDate para evitar problemas de timezone
+      const taskDate = this.parseLocalDate(task.date);
+      if (!taskDate) return;
+
       taskDate.setHours(0, 0, 0, 0);
 
       // Atrasadas
@@ -416,7 +441,10 @@ class TasksManager {
   async rescheduleOverdue() {
     const today = new Date().toISOString().split('T')[0];
     const overdueTasks = this.tasks.filter(task => {
-      const taskDate = new Date(task.date);
+      // Usar parseLocalDate para evitar problemas de timezone
+      const taskDate = this.parseLocalDate(task.date);
+      if (!taskDate) return false;
+
       const now = new Date();
       taskDate.setHours(0, 0, 0, 0);
       now.setHours(0, 0, 0, 0);
@@ -437,7 +465,10 @@ class TasksManager {
 
   // Formatar data para exibição
   formatDate(dateStr) {
-    const date = new Date(dateStr);
+    // Usar parseLocalDate para evitar problemas de timezone
+    const date = this.parseLocalDate(dateStr);
+    if (!date) return dateStr;
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -459,7 +490,10 @@ class TasksManager {
 
   // Formatar data para título de seção
   formatSectionDate(dateStr) {
-    const date = new Date(dateStr);
+    // Usar parseLocalDate para evitar problemas de timezone
+    const date = this.parseLocalDate(dateStr);
+    if (!date) return dateStr;
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
