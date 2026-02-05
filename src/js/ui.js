@@ -383,15 +383,25 @@ class UIManager {
     }
 
     // Salvar tags
+    const tagObjects = [];
     if (this.selectedTags.length > 0) {
       for (const tagId of this.selectedTags) {
         await window.tagsManager.addTagToTask(taskId, tagId);
+        const tag = window.tagsManager.getTagById(tagId);
+        if (tag) tagObjects.push(tag);
       }
+    }
+
+    // Atualizar tarefa local com as tags
+    const task = window.tasksManager.tasks.find(t => t.id === taskId);
+    if (task) {
+      task.tags = tagObjects;
+      window.tasksManager.saveTasks();
     }
 
     this.closeTaskModal();
     this.selectedTags = [];
-    await this.renderTasks();
+    this.renderTasks();
   }
 
   // Marcar/Desmarcar Tarefa como Concluída

@@ -135,6 +135,17 @@ class TagsManager {
         return data;
       }
     }
+    // Modo offline: tentar buscar do localStorage das tarefas
+    const storedTasks = localStorage.getItem(CONFIG.storage.TASKS_KEY);
+    if (storedTasks) {
+      try {
+        const tasks = JSON.parse(storedTasks);
+        const task = tasks.find(t => t.id === taskId);
+        return task?.tags || [];
+      } catch (e) {
+        console.error('Erro ao buscar tags offline:', e);
+      }
+    }
     return [];
   }
 }

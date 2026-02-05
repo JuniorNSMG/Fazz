@@ -15,6 +15,12 @@ class TasksManager {
       const { data, error } = await window.supabaseClient.fetchTasks();
 
       if (!error && data) {
+        // Carregar tags de cada tarefa
+        for (const task of data) {
+          const tags = await window.tagsManager.getTaskTags(task.id);
+          task.tags = tags;
+        }
+
         this.tasks = data;
         this.saveTasks(); // Salvar localmente como backup
         return this.tasks;
@@ -51,8 +57,9 @@ class TasksManager {
       title: taskData.title,
       date: taskData.date,
       time: taskData.time || null,
-      project: taskData.project || 'inbox',
+      notes: taskData.notes || null,
       completed: false,
+      tags: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -62,6 +69,7 @@ class TasksManager {
       const { data, error } = await window.supabaseClient.createTask(newTask);
 
       if (!error && data) {
+        data.tags = []; // Inicializar tags vazio
         this.tasks.push(data);
         this.saveTasks();
         return data;
