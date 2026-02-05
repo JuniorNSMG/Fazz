@@ -132,9 +132,16 @@ class UIManager {
     });
 
     // Recorrência
-    document.getElementById('btnAddRecurrence')?.addEventListener('click', () => {
-      this.openRecurrenceModal();
-    });
+    const btnAddRecurrence = document.getElementById('btnAddRecurrence');
+    console.log('🔄 Botão de recorrência encontrado:', btnAddRecurrence);
+    if (btnAddRecurrence) {
+      btnAddRecurrence.addEventListener('click', () => {
+        console.log('🔄 Clique no botão de recorrência detectado!');
+        this.openRecurrenceModal();
+      });
+    } else {
+      console.error('❌ Botão btnAddRecurrence não encontrado!');
+    }
 
     document.getElementById('btnCloseRecurrenceModal')?.addEventListener('click', () => {
       this.closeRecurrenceModal();
@@ -1095,8 +1102,13 @@ class UIManager {
   // ===== RECORRÊNCIA =====
 
   openRecurrenceModal() {
+    console.log('🔄 openRecurrenceModal chamado!');
     const modal = document.getElementById('recurrenceModal');
-    if (!modal) return;
+    console.log('🔄 Modal encontrado:', modal);
+    if (!modal) {
+      console.error('❌ Modal de recorrência não encontrado!');
+      return;
+    }
 
     // Se já existe recorrência na tarefa sendo editada, preencher os campos
     if (this.editingTaskId) {
