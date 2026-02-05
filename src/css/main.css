@@ -1832,7 +1832,7 @@ textarea {
 }
 
 .task-form-minimal {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -1861,14 +1861,21 @@ textarea {
   font-weight: var(--font-weight-normal);
 }
 
-/* Data e horário inline */
-.form-field-row {
+/* Data e horário (75% / 25%) */
+.form-field-row-date-time {
   display: flex;
   gap: var(--spacing-md);
 }
 
-.field-with-icon {
+.field-date {
+  flex: 3;
+}
+
+.field-time {
   flex: 1;
+}
+
+.field-with-icon {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -1896,6 +1903,7 @@ textarea {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
+  min-width: 0;
 }
 
 .field-with-icon .input-inline:focus {
@@ -1906,6 +1914,7 @@ textarea {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-normal);
+  text-align: center;
 }
 
 /* Observações expansível */
@@ -1935,24 +1944,40 @@ textarea {
   color: var(--color-text-tertiary);
 }
 
-/* Botões de opções inline */
-.form-options-inline {
+/* Botões de opções (Tags, Anexos, Recorrência) */
+.form-options-row {
   display: flex;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xs) 0;
+  gap: var(--spacing-md);
 }
 
 .btn-option {
   background: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
+  flex: 1;
+}
+
+.btn-option span {
+  white-space: nowrap;
+}
+
+.btn-option-half {
+  flex: 1;
+}
+
+.btn-option-full {
+  flex: 1;
+  width: 100%;
 }
 
 .btn-option:hover {
@@ -2036,6 +2061,10 @@ textarea {
   border-top: 1px solid var(--color-border-light);
 }
 
+.form-actions-centered {
+  justify-content: center;
+}
+
 .btn-text {
   background: none;
   border: none;
@@ -2110,10 +2139,17 @@ textarea {
     font-size: var(--font-size-base);
   }
 
-  /* Data e horário stack vertical no mobile */
-  .form-field-row {
-    flex-direction: column;
+  /* Data e horário mantém na mesma linha no mobile */
+  .form-field-row-date-time {
     gap: var(--spacing-sm);
+  }
+
+  .field-date {
+    flex: 3;
+  }
+
+  .field-time {
+    flex: 1;
   }
 
   /* Reduzir padding do modal no mobile */
