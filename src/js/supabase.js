@@ -141,9 +141,12 @@ class SupabaseClient {
 
     try {
       const taskData = {
-        ...task,
-        user_id: this.user.id,
-        created_at: new Date().toISOString()
+        title: task.title,
+        date: task.date,
+        time: task.time || null,
+        project: task.project || 'inbox',
+        completed: task.completed || false,
+        user_id: this.user.id
       };
 
       const { data, error } = await this.client
@@ -166,10 +169,7 @@ class SupabaseClient {
     try {
       const { data, error } = await this.client
         .from('tasks')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(updates)
         .eq('id', id)
         .eq('user_id', this.user.id)
         .select()
