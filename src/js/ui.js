@@ -414,7 +414,23 @@ class UIManager {
     } else {
       modalTitle.textContent = 'Nova Tarefa';
       taskTitle.value = '';
-      taskDate.value = new Date().toISOString().split('T')[0];
+
+      // Obter data atual no timezone local (não UTC!)
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+
+      console.log('📅 Modal aberto - Data de hoje:');
+      console.log('  Objeto Date:', today);
+      console.log('  String formatada:', todayStr);
+      console.log('  Dia:', today.getDate());
+      console.log('  Mês:', today.getMonth() + 1);
+      console.log('  Ano:', today.getFullYear());
+
+      taskDate.value = todayStr;
+
       taskTime.value = '';
       taskNotes.value = '';
 
@@ -444,6 +460,10 @@ class UIManager {
       time: document.getElementById('taskTime').value || null,
       notes: document.getElementById('taskNotes').value.trim() || null
     };
+
+    console.log('📤 Formulário submetido');
+    console.log('  Input date value:', document.getElementById('taskDate').value);
+    console.log('  taskData.date:', taskData.date);
 
     if (!taskData.title || !taskData.date) {
       alert('Por favor, preencha o título e a data');

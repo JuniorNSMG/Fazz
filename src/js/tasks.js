@@ -245,6 +245,8 @@ class TasksManager {
 
   // Criar nova tarefa
   async createTask(taskData) {
+    console.log('📝 createTask chamado com:', taskData);
+
     const newTask = {
       id: this.generateId(),
       title: taskData.title,
@@ -257,6 +259,15 @@ class TasksManager {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    console.log('📋 Tarefa criada:', newTask);
+    console.log('📅 Data recebida:', taskData.date);
+    console.log('📅 Data salva:', newTask.date);
+
+    // Debug: testar parseLocalDate
+    const parsedDate = this.parseLocalDate(newTask.date);
+    console.log('🔍 parseLocalDate resultado:', parsedDate);
+    console.log('🔍 Data formatada:', parsedDate ? parsedDate.toLocaleDateString('pt-BR') : 'null');
 
     // Se estiver autenticado, salvar no Supabase
     if (window.supabaseClient.isAuthenticated()) {
@@ -371,6 +382,9 @@ class TasksManager {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    console.log('📊 getGroupedTasks chamado');
+    console.log('📅 Hoje:', today.toLocaleDateString('pt-BR'), '|', today.getTime());
+
     const groups = {
       overdue: [],
       today: [],
@@ -391,16 +405,24 @@ class TasksManager {
 
       taskDate.setHours(0, 0, 0, 0);
 
+      console.log(`📌 Tarefa: "${task.title}"`);
+      console.log(`  📅 task.date: ${task.date}`);
+      console.log(`  🔍 taskDate parsed: ${taskDate.toLocaleDateString('pt-BR')} | ${taskDate.getTime()}`);
+      console.log(`  ⏰ Comparação: ${taskDate.getTime()} vs ${today.getTime()}`);
+
       // Atrasadas
       if (taskDate < today) {
+        console.log(`  ⬅️ Atrasada`);
         groups.overdue.push(task);
       }
       // Hoje
       else if (taskDate.getTime() === today.getTime()) {
+        console.log(`  ✅ Hoje`);
         groups.today.push(task);
       }
       // Futuras
       else {
+        console.log(`  ➡️ Futura`);
         const dateKey = task.date;
         if (!groups.upcoming[dateKey]) {
           groups.upcoming[dateKey] = [];
