@@ -79,8 +79,31 @@ class AuthManager {
       return;
     }
 
+    console.log('✅ Login realizado com sucesso');
+
+    // Limpar cache antigo antes de carregar dados do novo usuário
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      console.log('🧹 Limpando cache do usuário anterior...');
+      await window.cacheManager.clearAll();
+    }
+
+    // Limpar localStorage também
+    localStorage.removeItem(CONFIG.storage.TASKS_KEY);
+    localStorage.removeItem('fazz_tags');
+
     this.closeAuthModal();
-    await window.app.loadTasks();
+
+    // Forçar carregamento do servidor (não usar cache)
+    console.log('🔄 Carregando dados do servidor...');
+    await window.tasksManager.loadTasks(true); // forceSync = true
+    await window.tagsManager.loadTags(true); // forceSync = true
+
+    // Renderizar UI
+    if (window.uiManager) {
+      window.uiManager.renderTasks();
+    }
+
+    console.log('✅ Dados do usuário carregados');
   }
 
   async handleRegister(e) {

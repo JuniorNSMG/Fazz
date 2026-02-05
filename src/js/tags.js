@@ -50,20 +50,29 @@ class TagsManager {
   // Carregar do servidor e salvar no cache
   async loadFromServer() {
     if (window.supabaseClient.isAuthenticated()) {
+      console.log('☁️ Buscando tags do Supabase...');
       const { data, error } = await window.supabaseClient.fetchTags();
+
       if (!error && data) {
+        console.log(`  📥 Recebidas ${data.length} tags do servidor`);
         this.tags = data;
 
-        // Salvar no cache IndexedDB
-        if (window.cacheManager) {
-          await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+        // Limpar cache antigo e salvar novo
+        if (window.cacheManager && window.cacheManager.isReady()) {
+          await window.cacheManager.clear(window.cacheManager.stores.TAGS);
+          if (data.length > 0) {
+            await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+            console.log('  💾 Tags salvas no cache');
+          }
         }
 
         // Salvar no localStorage como backup
         this.saveTags();
 
-        console.log(`✓ ${data.length} tags carregadas do servidor`);
+        console.log(`✅ ${data.length} tags carregadas do servidor`);
         return this.tags;
+      } else if (error) {
+        console.error('❌ Erro ao buscar tags do servidor:', error);
       }
     }
 
@@ -72,11 +81,14 @@ class TagsManager {
     if (stored) {
       try {
         this.tags = JSON.parse(stored);
-        console.log(`✓ ${this.tags.length} tags carregadas do localStorage`);
+        console.log(`📦 ${this.tags.length} tags carregadas do localStorage (modo guest/offline)`);
       } catch (e) {
-        console.error('Erro ao carregar tags:', e);
+        console.error('❌ Erro ao carregar tags do localStorage:', e);
         this.tags = [];
       }
+    } else {
+      console.log('ℹ️ Nenhuma tag encontrada localmente');
+      this.tags = [];
     }
 
     return this.tags;
@@ -87,23 +99,41 @@ class TagsManager {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     if (window.supabaseClient.isAuthenticated()) {
+      console.log('🔄 Sincronizando tags com servidor...');
       const { data, error } = await window.supabaseClient.fetchTags();
 
       if (!error && data) {
+        console.log(`  📊 Servidor: ${data.length} tags | Local: ${this.tags.length} tags`);
+
         const hasChanges = data.length !== this.tags.length ||
-          data.some(serverTag => !this.tags.find(t => t.id === serverTag.id));
+          data.some(serverTag => !this.tags.find(t => t.id === serverTag.id)) ||
+          this.tags.some(localTag => !data.find(t => t.id === localTag.id));
 
         if (hasChanges) {
+          console.log('  ⚠️ Diferenças detectadas, atualizando...');
           this.tags = data;
 
-          // Atualizar cache
-          if (window.cacheManager) {
-            await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+          // Limpar e atualizar cache completamente
+          if (window.cacheManager && window.cacheManager.isReady()) {
+            await window.cacheManager.clear(window.cacheManager.stores.TAGS);
+            if (data.length > 0) {
+              await window.cacheManager.saveMany(window.cacheManager.stores.TAGS, this.tags);
+            }
           }
 
           this.saveTags();
-          console.log('✓ Tags sincronizadas');
+
+          // Atualizar UI se disponível
+          if (window.uiManager && window.uiManager.renderTasks) {
+            window.uiManager.renderTasks();
+          }
+
+          console.log('✅ Tags sincronizadas com servidor');
+        } else {
+          console.log('  ✓ Tags já estão sincronizadas');
         }
+      } else if (error) {
+        console.error('❌ Erro ao sincronizar tags:', error);
       }
     }
   }
@@ -127,22 +157,43 @@ class TagsManager {
     };
 
     if (window.supabaseClient.isAuthenticated()) {
-      console.log('Criando tag no Supabase:', newTag);
+      console.log('🏷️ Criando tag no Supabase:', newTag);
       const { data, error } = await window.supabaseClient.createTag(newTag);
       if (error) {
-        console.error('Erro ao criar tag no Supabase:', error);
+        console.error('❌ Erro ao criar tag no Supabase:', error);
+        // Mesmo com erro no servidor, salvar localmente
+        this.tags.push(newTag);
+        this.saveTags();
+        if (window.cacheManager && window.cacheManager.isReady()) {
+          await window.cacheManager.save(window.cacheManager.stores.TAGS, newTag);
+        }
+        return newTag;
       }
       if (!error && data) {
-        console.log('Tag criada no Supabase:', data);
+        console.log('✅ Tag criada no Supabase:', data);
         this.tags.push(data);
         this.saveTags();
+
+        // Salvar no cache IndexedDB
+        if (window.cacheManager && window.cacheManager.isReady()) {
+          await window.cacheManager.save(window.cacheManager.stores.TAGS, data);
+          console.log('💾 Tag salva no cache');
+        }
+
         return data;
       }
     }
 
-    console.log('Criando tag localmente:', newTag);
+    console.log('🏷️ Criando tag localmente (modo guest/offline):', newTag);
     this.tags.push(newTag);
     this.saveTags();
+
+    // Salvar no cache IndexedDB
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      await window.cacheManager.save(window.cacheManager.stores.TAGS, newTag);
+      console.log('💾 Tag salva no cache');
+    }
+
     return newTag;
   }
 
@@ -151,13 +202,20 @@ class TagsManager {
     if (window.supabaseClient.isAuthenticated()) {
       const { error } = await window.supabaseClient.deleteTag(id);
       if (error) {
-        console.error('Erro ao deletar tag:', error);
+        console.error('❌ Erro ao deletar tag:', error);
         return false;
       }
     }
 
     this.tags = this.tags.filter(t => t.id !== id);
     this.saveTags();
+
+    // Deletar do cache IndexedDB
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      await window.cacheManager.delete(window.cacheManager.stores.TAGS, id);
+      console.log('💾 Tag removida do cache');
+    }
+
     return true;
   }
 
