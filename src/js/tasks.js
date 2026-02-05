@@ -427,12 +427,19 @@ class TasksManager {
 
   // Criar próxima ocorrência de tarefa recorrente
   async createNextRecurrence(completedTask) {
+    console.log('🔄 createNextRecurrence chamado para:', completedTask.title);
+    console.log('🔄 Recorrência da tarefa:', completedTask.recurrence);
+
     if (!completedTask.recurrence || !completedTask.recurrence.enabled) {
+      console.log('❌ Tarefa não tem recorrência habilitada');
       return null;
     }
 
     const nextDate = this.calculateNextRecurrence(completedTask);
+    console.log('🔄 Próxima data calculada:', nextDate);
+
     if (!nextDate) {
+      console.log('❌ Recorrência terminou (sem próxima data)');
       return null; // Recorrência terminou
     }
 
@@ -449,7 +456,11 @@ class TasksManager {
       }
     };
 
-    return await this.createTask(newTaskData);
+    console.log('🔄 Criando nova tarefa com dados:', newTaskData);
+    const newTask = await this.createTask(newTaskData);
+    console.log('✅ Nova tarefa recorrente criada:', newTask);
+
+    return newTask;
   }
 
   // Override do toggleComplete para lidar com recorrência
@@ -457,12 +468,26 @@ class TasksManager {
     const task = this.tasks.find(t => t.id === id);
     if (!task) return null;
 
+    console.log('🔄 toggleComplete chamado para:', task.title);
+    console.log('🔄 Tarefa tem recorrência?', task.recurrence);
+
     const wasCompleted = task.completed;
     const updatedTask = await this.updateTask(id, { completed: !task.completed });
 
+    console.log('🔄 wasCompleted:', wasCompleted, 'updatedTask.completed:', updatedTask.completed);
+
     // Se a tarefa foi marcada como concluída e tem recorrência
     if (!wasCompleted && updatedTask.completed && updatedTask.recurrence && updatedTask.recurrence.enabled) {
-      await this.createNextRecurrence(updatedTask);
+      console.log('✅ Criando próxima ocorrência da tarefa recorrente');
+      const nextTask = await this.createNextRecurrence(updatedTask);
+      console.log('✅ Próxima tarefa criada:', nextTask);
+    } else {
+      console.log('❌ Não criou próxima ocorrência. Motivos:', {
+        wasCompleted,
+        isCompleted: updatedTask.completed,
+        hasRecurrence: !!updatedTask.recurrence,
+        isEnabled: updatedTask.recurrence?.enabled
+      });
     }
 
     return updatedTask;
