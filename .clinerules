@@ -1,0 +1,24 @@
+# Regras do Projeto Fazz
+
+## Git e Deploy
+- SEMPRE fazer commits e push DIRETO para a branch MAIN
+- NUNCA usar outras branches sem permissão explícita
+- Comando correto: `git push origin HEAD:main` ou `git push origin crazy-hodgkin:main`
+- Após cada commit, SEMPRE fazer push para main imediatamente
+- GitHub Pages usa a branch MAIN, então todas as mudanças devem ir para lá
+
+## Workflow de Commits
+1. `git add -A`
+2. `git commit -m "mensagem"`
+3. `git push origin HEAD:main` (SEMPRE para main, não para a branch atual)
+4. Confirmar que o push foi bem sucedido
+
+## Debugging
+- Antes de implementar features complexas, SEMPRE adicionar logs de debug
+- Testar localmente quando possível antes de fazer commit
+- Ao encontrar bugs, adicionar logs primeiro, depois corrigir
+
+## Comunicação
+- SEMPRE avisar o usuário quando fizer push para main
+- Informar o tempo estimado de deploy (1-2 minutos)
+- Pedir confirmação antes de mudanças estruturais grandes
