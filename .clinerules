@@ -22,3 +22,7 @@
 - SEMPRE avisar o usuário quando fizer push para main
 - Informar o tempo estimado de deploy (1-2 minutos)
 - Pedir confirmação antes de mudanças estruturais grandes
+
+## Frontend
+- SEMPRE seguir orientações da Skill Fazz/.claude/skills/ui-ux-pro-max/
+
