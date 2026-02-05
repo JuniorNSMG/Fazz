@@ -974,65 +974,57 @@ body {
   font-size: var(--font-size-base);
 }
 
-/* Controles de tarefas concluídas */
-.completed-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-}
-
-.btn-toggle-completed {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
+/* Título clicável de concluídas */
+.completed-title-toggle {
   cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
 }
 
-.btn-toggle-completed:hover {
-  background-color: var(--color-surface-hover);
-  color: var(--color-primary);
+.completed-title-toggle:hover {
+  color: var(--color-primary) !important;
 }
 
-.btn-toggle-completed:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.completed-title-toggle:active {
+  transform: scale(0.98);
 }
 
-.btn-toggle-completed svg {
-  transition: transform var(--transition-fast);
-  transform: rotate(0deg);
+/* Item de limpar concluídas */
+.clear-completed-item {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  list-style: none;
+  margin-bottom: var(--spacing-sm);
 }
 
-.btn-toggle-completed.expanded svg {
-  transform: rotate(180deg);
-}
-
-.btn-clear-completed {
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  color: var(--color-text-secondary);
+.btn-clear-completed-inline {
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-overdue-light);
+  color: var(--color-overdue);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
   cursor: pointer;
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
+  text-align: center;
 }
 
-.btn-clear-completed:hover {
-  background-color: var(--color-overdue-light);
-  color: var(--color-overdue);
+.btn-clear-completed-inline:hover {
+  background-color: var(--color-overdue);
+  color: var(--color-text-inverse);
   border-color: var(--color-overdue);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.btn-clear-completed:focus {
+.btn-clear-completed-inline:active {
+  transform: translateY(0);
+}
+
+.btn-clear-completed-inline:focus {
   outline: 2px solid var(--color-overdue);
   outline-offset: 2px;
 }

@@ -249,41 +249,34 @@ class UIManager {
     const header = document.createElement('div');
     header.className = 'section-header';
 
+    // Título clicável para expandir/recolher
     const titleElement = document.createElement('h2');
-    titleElement.className = 'section-title';
+    titleElement.className = 'section-title completed-title-toggle';
     titleElement.textContent = `Concluídas (${tasks.length})`;
-
-    // Botão de expandir/recolher
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'btn-toggle-completed';
-    toggleBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
-    `;
-    toggleBtn.addEventListener('click', () => {
+    titleElement.addEventListener('click', () => {
       section.classList.toggle('collapsed');
-      toggleBtn.classList.toggle('expanded');
     });
 
-    // Botão de limpar concluídas
-    const clearBtn = document.createElement('button');
-    clearBtn.className = 'btn-clear-completed';
-    clearBtn.textContent = 'Limpar';
-    clearBtn.addEventListener('click', () => this.handleClearCompleted());
-
-    const buttonGroup = document.createElement('div');
-    buttonGroup.className = 'completed-actions';
-    buttonGroup.appendChild(toggleBtn);
-    buttonGroup.appendChild(clearBtn);
-
     header.appendChild(titleElement);
-    header.appendChild(buttonGroup);
     section.appendChild(header);
 
+    // Container de lista
     const taskList = document.createElement('ul');
     taskList.className = 'task-list';
 
+    // Botão "Limpar" aparece como primeiro item quando expandido
+    const clearListItem = document.createElement('li');
+    clearListItem.className = 'clear-completed-item';
+
+    const clearButton = document.createElement('button');
+    clearButton.className = 'btn-clear-completed-inline';
+    clearButton.textContent = 'Limpar concluídas';
+    clearButton.addEventListener('click', () => this.handleClearCompleted());
+
+    clearListItem.appendChild(clearButton);
+    taskList.appendChild(clearListItem);
+
+    // Adicionar tarefas
     tasks.forEach(task => {
       taskList.appendChild(this.createTaskElement(task, false));
     });
