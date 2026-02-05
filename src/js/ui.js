@@ -14,6 +14,7 @@ class UIManager {
     this.currentAttachments = [];
     this.pendingFiles = [];
     this.currentImageAttachment = null;
+    this.currentView = 'today'; // View padrão: Hoje
   }
 
   init() {
@@ -189,16 +190,21 @@ class UIManager {
 
   // Renderizar todas as tarefas
   renderTasks() {
-    const grouped = window.tasksManager.getGroupedTasks();
+    // Usar view atual se definida, senão renderizar tudo
+    if (this.currentView) {
+      this.renderTasksByView(this.currentView);
+    } else {
+      const grouped = window.tasksManager.getGroupedTasks();
 
-    // Renderizar Atrasadas
-    this.renderOverdueTasks(grouped.overdue);
+      // Renderizar Atrasadas
+      this.renderOverdueTasks(grouped.overdue);
 
-    // Renderizar Datas (Hoje + Futuras)
-    this.renderDateSections(grouped);
+      // Renderizar Datas (Hoje + Futuras)
+      this.renderDateSections(grouped);
 
-    // Renderizar Concluídas
-    this.renderCompletedTasks(grouped.completed);
+      // Renderizar Concluídas
+      this.renderCompletedTasks(grouped.completed);
+    }
   }
 
   // Renderizar Tarefas Atrasadas
@@ -652,6 +658,8 @@ class UIManager {
 
   // Navegação
   handleNavigation(view) {
+    this.currentView = view; // Salvar view atual
+
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
       item.classList.remove('active');
@@ -666,15 +674,79 @@ class UIManager {
       const titles = {
         inbox: 'Entrada',
         today: 'Hoje',
-        upcoming: 'Em Breve',
-        navigate: 'Navegar'
+        upcoming: 'Em Breve'
       };
       pageTitle.textContent = titles[view] || 'Fazz';
     }
 
-    // Aqui você pode adicionar lógica para filtrar tarefas por view
-    // Por enquanto, apenas renderiza todas
-    this.renderTasks();
+    // Renderizar com filtro
+    this.renderTasksByView(view);
+  }
+
+  // Renderizar tarefas por view
+  renderTasksByView(view) {
+    const grouped = window.tasksManager.getGroupedTasks();
+    const tasksContainer = document.getElementById('tasksContainer');
+
+    if (!tasksContainer) return;
+    tasksContainer.innerHTML = '';
+
+    switch(view) {
+      case 'inbox':
+        // Entrada: Atrasadas, Hoje e Amanhã
+        this.renderOverdueTasks(grouped.overdue);
+        this.renderTodayTasks(grouped.today);
+        this.renderTomorrowTasks(grouped.upcoming);
+        this.renderCompletedTasks(grouped.completed);
+        break;
+
+      case 'today':
+        // Hoje: Só tarefas de hoje
+        this.renderTodayTasks(grouped.today);
+        this.renderCompletedTasks(grouped.completed);
+        break;
+
+      case 'upcoming':
+        // Em Breve: Todas as tarefas futuras
+        this.renderOverdueTasks(grouped.overdue);
+        this.renderTodayTasks(grouped.today);
+        this.renderUpcomingTasks(grouped.upcoming);
+        this.renderCompletedTasks(grouped.completed);
+        break;
+
+      default:
+        this.renderTasks();
+    }
+  }
+
+  // Renderizar apenas tarefas de amanhã
+  renderTomorrowTasks(upcomingTasks) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = window.tasksManager.formatDateToString(tomorrow);
+
+    const tomorrowTasksMap = upcomingTasks[tomorrowStr] || [];
+
+    if (tomorrowTasksMap.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'tasks-section';
+
+    const titleElement = document.createElement('h2');
+    titleElement.className = 'section-title';
+    titleElement.textContent = `Amanhã (${tomorrowTasksMap.length})`;
+    section.appendChild(titleElement);
+
+    const tasksElement = document.createElement('div');
+    tasksElement.className = 'tasks-list';
+
+    tomorrowTasksMap.forEach(task => {
+      const taskElement = this.createTaskElement(task);
+      tasksElement.appendChild(taskElement);
+    });
+
+    section.appendChild(tasksElement);
+    document.getElementById('tasksContainer')?.appendChild(section);
   }
 
   // Menu do Usuário
