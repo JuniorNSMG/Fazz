@@ -199,6 +199,121 @@ class SupabaseClient {
       return { error };
     }
   }
+
+  // ==========================================
+  // TAGS
+  // ==========================================
+
+  // Buscar tags do usuário
+  async fetchTags() {
+    if (!this.initialized || !this.user) return { data: [], error: null };
+
+    try {
+      const { data, error } = await this.client
+        .from('tags')
+        .select('*')
+        .eq('user_id', this.user.id)
+        .order('name', { ascending: true });
+
+      return { data: data || [], error };
+    } catch (error) {
+      console.error('Erro ao buscar tags:', error);
+      return { data: [], error };
+    }
+  }
+
+  // Criar tag
+  async createTag(tag) {
+    if (!this.initialized || !this.user) return { data: null, error: 'Usuário não autenticado' };
+
+    try {
+      const tagData = {
+        name: tag.name,
+        color: tag.color,
+        user_id: this.user.id
+      };
+
+      const { data, error } = await this.client
+        .from('tags')
+        .insert([tagData])
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao criar tag:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Deletar tag
+  async deleteTag(id) {
+    if (!this.initialized || !this.user) return { error: 'Usuário não autenticado' };
+
+    try {
+      const { error } = await this.client
+        .from('tags')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', this.user.id);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao deletar tag:', error);
+      return { error };
+    }
+  }
+
+  // Adicionar tag a tarefa
+  async addTagToTask(taskId, tagId) {
+    if (!this.initialized || !this.user) return { error: 'Usuário não autenticado' };
+
+    try {
+      const { error } = await this.client
+        .from('task_tags')
+        .insert([{ task_id: taskId, tag_id: tagId }]);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao adicionar tag à tarefa:', error);
+      return { error };
+    }
+  }
+
+  // Remover tag de tarefa
+  async removeTagFromTask(taskId, tagId) {
+    if (!this.initialized || !this.user) return { error: 'Usuário não autenticado' };
+
+    try {
+      const { error } = await this.client
+        .from('task_tags')
+        .delete()
+        .eq('task_id', taskId)
+        .eq('tag_id', tagId);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao remover tag da tarefa:', error);
+      return { error };
+    }
+  }
+
+  // Obter tags de uma tarefa
+  async getTaskTags(taskId) {
+    if (!this.initialized || !this.user) return { data: [], error: null };
+
+    try {
+      const { data, error } = await this.client
+        .from('task_tags')
+        .select('tag_id, tags(*)')
+        .eq('task_id', taskId);
+
+      return { data: data?.map(item => item.tags) || [], error };
+    } catch (error) {
+      console.error('Erro ao buscar tags da tarefa:', error);
+      return { data: [], error };
+    }
+  }
 }
 
 // Exportar instância global
