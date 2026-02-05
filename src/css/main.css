@@ -926,3 +926,40 @@ textarea {
   min-height: 60px;
   font-family: inherit;
 }
+
+/* ==========================================
+   COLOR PICKER
+   ========================================== */
+
+.color-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.color-option {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.color-option:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.color-option.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-lighter);
+}
+
+/* ==========================================
+   TAG MODAL
+   ========================================== */
+
+.tag-modal {
+  max-width: 400px;
+}

@@ -6,16 +6,23 @@ class UIManager {
   constructor() {
     this.taskModal = null;
     this.taskForm = null;
+    this.tagModal = null;
     this.currentEditingId = null;
+    this.selectedTags = [];
+    this.selectedColor = 'blue';
   }
 
   init() {
     this.taskModal = document.getElementById('taskModal');
     this.taskForm = document.getElementById('taskForm');
+    this.tagModal = document.getElementById('tagModal');
 
     this.setupEventListeners();
     this.updateTime();
     setInterval(() => this.updateTime(), 60000); // Atualizar a cada minuto
+
+    // Carregar tags
+    this.loadAvailableTags();
   }
 
   setupEventListeners() {
@@ -55,6 +62,33 @@ class UIManager {
     // Menu do usuário
     document.getElementById('btnMenu')?.addEventListener('click', () => {
       this.showUserMenu();
+    });
+
+    // Tags
+    document.getElementById('btnAddTag')?.addEventListener('click', () => {
+      this.openTagModal();
+    });
+
+    document.getElementById('btnCloseTagModal')?.addEventListener('click', () => {
+      this.closeTagModal();
+    });
+
+    document.getElementById('btnCancelTag')?.addEventListener('click', () => {
+      this.closeTagModal();
+    });
+
+    document.getElementById('tagForm')?.addEventListener('submit', (e) => {
+      this.handleTagSubmit(e);
+    });
+
+    // Color picker
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        colorOptions.forEach(o => o.classList.remove('active'));
+        option.classList.add('active');
+        this.selectedColor = option.dataset.color;
+      });
     });
   }
 
@@ -268,8 +302,9 @@ class UIManager {
   }
 
   // Abrir Modal de Tarefa
-  openTaskModal(task = null) {
+  async openTaskModal(task = null) {
     this.currentEditingId = task?.id || null;
+    this.selectedTags = [];
 
     const modalTitle = document.getElementById('modalTitle');
     const taskTitle = document.getElementById('taskTitle');
@@ -283,6 +318,10 @@ class UIManager {
       taskDate.value = task.date;
       taskTime.value = task.time || '';
       taskNotes.value = task.notes || '';
+
+      // Carregar tags da tarefa
+      const taskTags = await window.tagsManager.getTaskTags(task.id);
+      this.selectedTags = taskTags.map(tag => tag.id);
     } else {
       modalTitle.textContent = 'Nova Tarefa';
       taskTitle.value = '';
@@ -291,6 +330,7 @@ class UIManager {
       taskNotes.value = '';
     }
 
+    this.renderAvailableTags();
     this.taskModal?.classList.add('active');
     taskTitle?.focus();
   }
@@ -380,6 +420,113 @@ class UIManager {
     if (choice) {
       window.authManager.logout();
     }
+  }
+
+  // ==========================================
+  // TAGS
+  // ==========================================
+
+  async loadAvailableTags() {
+    await window.tagsManager.loadTags();
+    this.renderAvailableTags();
+  }
+
+  renderAvailableTags() {
+    const tagsList = document.getElementById('tagsList');
+    if (!tagsList) return;
+
+    tagsList.innerHTML = '';
+
+    this.selectedTags.forEach(tagId => {
+      const tag = window.tagsManager.getTagById(tagId);
+      if (tag) {
+        const tagElement = this.createTagElement(tag, true);
+        tagsList.appendChild(tagElement);
+      }
+    });
+  }
+
+  createTagElement(tag, removable = false) {
+    const tagEl = document.createElement('span');
+    tagEl.className = `tag tag-${tag.color}`;
+    if (removable) {
+      tagEl.classList.add('tag-removable');
+    }
+
+    tagEl.innerHTML = `
+      ${tag.name}
+      ${removable ? `
+        <span class="tag-remove" data-tag-id="${tag.id}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </span>
+      ` : ''}
+    `;
+
+    if (removable) {
+      tagEl.querySelector('.tag-remove')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeTagFromTask(tag.id);
+      });
+    }
+
+    return tagEl;
+  }
+
+  removeTagFromTask(tagId) {
+    this.selectedTags = this.selectedTags.filter(id => id !== tagId);
+    this.renderAvailableTags();
+  }
+
+  openTagModal() {
+    this.selectedColor = 'blue';
+    document.getElementById('tagName').value = '';
+
+    // Resetar seleção de cores
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(o => o.classList.remove('active'));
+    colorOptions[0]?.classList.add('active');
+
+    this.tagModal?.classList.add('active');
+    document.getElementById('tagName')?.focus();
+  }
+
+  closeTagModal() {
+    this.tagModal?.classList.remove('active');
+  }
+
+  async handleTagSubmit(e) {
+    e.preventDefault();
+
+    const tagName = document.getElementById('tagName').value.trim();
+
+    if (!tagName) {
+      alert('Por favor, digite um nome para a tag');
+      return;
+    }
+
+    // Verificar se já existe
+    const existing = window.tagsManager.getTagByName(tagName);
+    if (existing) {
+      // Se já existe, adicionar à tarefa atual
+      if (!this.selectedTags.includes(existing.id)) {
+        this.selectedTags.push(existing.id);
+        this.renderAvailableTags();
+      }
+      this.closeTagModal();
+      return;
+    }
+
+    // Criar nova tag
+    const newTag = await window.tagsManager.createTag(tagName, this.selectedColor);
+    if (newTag) {
+      this.selectedTags.push(newTag.id);
+      this.renderAvailableTags();
+    }
+
+    this.closeTagModal();
   }
 }
 
