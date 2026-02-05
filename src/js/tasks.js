@@ -155,14 +155,6 @@ class TasksManager {
     return true;
   }
 
-  // Marcar/desmarcar como concluída
-  async toggleComplete(id) {
-    const task = this.tasks.find(t => t.id === id);
-    if (!task) return null;
-
-    return await this.updateTask(id, { completed: !task.completed });
-  }
-
   // Obter tarefas agrupadas por data
   getGroupedTasks() {
     const today = new Date();

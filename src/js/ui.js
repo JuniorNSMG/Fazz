@@ -533,6 +533,8 @@ class UIManager {
       recurrence: this.currentRecurrence || null
     };
 
+    console.log('💾 Salvando tarefa com recorrência:', taskData.recurrence);
+
     if (!taskData.title || !taskData.date) {
       alert('Por favor, preencha o título e a data');
       return;
@@ -541,11 +543,13 @@ class UIManager {
     let taskId;
     if (this.currentEditingId) {
       // Atualizar tarefa existente
-      await window.tasksManager.updateTask(this.currentEditingId, taskData);
+      const updatedTask = await window.tasksManager.updateTask(this.currentEditingId, taskData);
+      console.log('💾 Tarefa atualizada:', updatedTask);
       taskId = this.currentEditingId;
     } else {
       // Criar nova tarefa
       const newTask = await window.tasksManager.createTask(taskData);
+      console.log('💾 Nova tarefa criada:', newTask);
       taskId = newTask.id;
     }
 
@@ -595,11 +599,16 @@ class UIManager {
       }
     }
 
-    // Atualizar tarefa local com tags e anexos
+    // Atualizar tarefa local com tags e anexos (preservando recorrência)
     const task = window.tasksManager.tasks.find(t => t.id === taskId);
     if (task) {
       task.tags = tagObjects;
       task.attachments = [...this.currentAttachments, ...uploadedAttachments];
+      // IMPORTANTE: Preservar recorrência se foi definida
+      if (this.currentRecurrence) {
+        task.recurrence = this.currentRecurrence;
+      }
+      console.log('💾 Tarefa final após adicionar tags/anexos:', task);
       window.tasksManager.saveTasks();
     }
 
