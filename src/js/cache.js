@@ -21,22 +21,29 @@ class CacheManager {
    * Inicializa o banco de dados IndexedDB
    */
   async init() {
+    // Se já está inicializado, retornar
+    if (this.db) {
+      console.log('IndexedDB já estava inicializado');
+      return this.db;
+    }
+
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
 
       request.onerror = () => {
-        console.error('Erro ao abrir IndexedDB:', request.error);
+        console.error('❌ Erro ao abrir IndexedDB:', request.error);
         reject(request.error);
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('IndexedDB inicializado com sucesso');
+        console.log('✅ IndexedDB inicializado com sucesso');
         resolve(this.db);
       };
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
+        console.log('🔧 Criando estrutura do IndexedDB...');
 
         // Object Store para Tarefas
         if (!db.objectStoreNames.contains(this.stores.TASKS)) {
@@ -44,12 +51,14 @@ class CacheManager {
           taskStore.createIndex('user_id', 'user_id', { unique: false });
           taskStore.createIndex('due_date', 'due_date', { unique: false });
           taskStore.createIndex('completed', 'completed', { unique: false });
+          console.log('  ✓ Store "tasks" criado');
         }
 
         // Object Store para Tags
         if (!db.objectStoreNames.contains(this.stores.TAGS)) {
           const tagStore = db.createObjectStore(this.stores.TAGS, { keyPath: 'id' });
           tagStore.createIndex('user_id', 'user_id', { unique: false });
+          console.log('  ✓ Store "tags" criado');
         }
 
         // Object Store para relação Task-Tags
@@ -57,22 +66,32 @@ class CacheManager {
           const taskTagStore = db.createObjectStore(this.stores.TASK_TAGS, { keyPath: 'id' });
           taskTagStore.createIndex('task_id', 'task_id', { unique: false });
           taskTagStore.createIndex('tag_id', 'tag_id', { unique: false });
+          console.log('  ✓ Store "task_tags" criado');
         }
 
         // Object Store para Anexos
         if (!db.objectStoreNames.contains(this.stores.ATTACHMENTS)) {
           const attachmentStore = db.createObjectStore(this.stores.ATTACHMENTS, { keyPath: 'id' });
           attachmentStore.createIndex('task_id', 'task_id', { unique: false });
+          console.log('  ✓ Store "attachments" criado');
         }
 
         // Object Store para Metadata (timestamps de sincronização)
         if (!db.objectStoreNames.contains(this.stores.METADATA)) {
           db.createObjectStore(this.stores.METADATA, { keyPath: 'key' });
+          console.log('  ✓ Store "metadata" criado');
         }
 
-        console.log('Estrutura do IndexedDB criada');
+        console.log('✅ Estrutura do IndexedDB criada com sucesso');
       };
     });
+  }
+
+  /**
+   * Verifica se o cache está pronto para uso
+   */
+  isReady() {
+    return this.db !== null;
   }
 
   /**

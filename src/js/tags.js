@@ -13,25 +13,34 @@ class TagsManager {
 
   // Carregar tags com estratégia cache-first
   async loadTags(forceSync = false) {
-    const cacheAvailable = window.cacheManager && window.cacheManager.db;
+    console.log(`🏷️ loadTags chamado (forceSync: ${forceSync})`);
+
+    // Verificar se cache está disponível e pronto
+    const cacheReady = window.cacheManager && window.cacheManager.isReady();
+    console.log(`  Cache status: ${cacheReady ? '✅ Pronto' : '❌ Não disponível'}`);
 
     // ESTRATÉGIA CACHE-FIRST: Carregar cache primeiro
-    if (cacheAvailable && !forceSync) {
+    if (cacheReady && !forceSync) {
       try {
+        console.log('  🔍 Buscando tags no cache...');
         const cachedTags = await window.cacheManager.getAll(window.cacheManager.stores.TAGS);
 
         if (cachedTags && cachedTags.length > 0) {
           this.tags = cachedTags;
-          console.log(`✓ ${cachedTags.length} tags carregadas do cache`);
+          console.log(`✅ ${cachedTags.length} tags carregadas do cache`);
 
           // Sincronizar em background
           this.syncInBackground();
 
           return this.tags;
+        } else {
+          console.log('  ℹ️ Cache de tags vazio, buscando do servidor...');
         }
       } catch (error) {
-        console.error('Erro ao carregar tags do cache:', error);
+        console.error('❌ Erro ao carregar tags do cache:', error);
       }
+    } else if (forceSync) {
+      console.log('  🔄 Sincronização forçada, indo direto ao servidor');
     }
 
     // Se não tem cache ou forceSync, buscar do servidor

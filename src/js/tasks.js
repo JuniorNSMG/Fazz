@@ -10,14 +10,21 @@ class TasksManager {
 
   // Carregar tarefas com estratégia cache-first
   async loadTasks(forceSync = false) {
-    const cacheAvailable = window.cacheManager && window.cacheManager.db;
+    console.log(`📥 loadTasks chamado (forceSync: ${forceSync})`);
 
-    // ESTRATÉGIA CACHE-FIRST: Carregar cache primeiro
-    if (cacheAvailable && !forceSync) {
+    // Verificar se cache está disponível e pronto
+    const cacheReady = window.cacheManager && window.cacheManager.isReady();
+    console.log(`  Cache status: ${cacheReady ? '✅ Pronto' : '❌ Não disponível'}`);
+
+    // ESTRATÉGIA CACHE-FIRST: Carregar cache primeiro (se não for forceSync)
+    if (cacheReady && !forceSync) {
       try {
+        console.log('  🔍 Buscando tarefas no cache...');
         const cachedTasks = await window.cacheManager.getAll(window.cacheManager.stores.TASKS);
 
         if (cachedTasks && cachedTasks.length > 0) {
+          console.log(`  💾 ${cachedTasks.length} tarefas encontradas no cache`);
+
           // Carregar tags e anexos do cache para cada tarefa
           for (const task of cachedTasks) {
             const tags = await window.cacheManager.getByIndex(
@@ -36,16 +43,20 @@ class TasksManager {
           }
 
           this.tasks = cachedTasks;
-          console.log(`✓ ${cachedTasks.length} tarefas carregadas do cache`);
+          console.log(`✅ ${cachedTasks.length} tarefas carregadas do cache`);
 
           // Sincronizar em background (não bloqueia a UI)
           this.syncInBackground();
 
           return this.tasks;
+        } else {
+          console.log('  ℹ️ Cache vazio, buscando do servidor...');
         }
       } catch (error) {
-        console.error('Erro ao carregar do cache:', error);
+        console.error('❌ Erro ao carregar do cache:', error);
       }
+    } else if (forceSync) {
+      console.log('  🔄 Sincronização forçada, indo direto ao servidor');
     }
 
     // Se não tem cache ou forceSync, buscar do servidor
@@ -220,6 +231,7 @@ class TasksManager {
       notes: taskData.notes || null,
       completed: false,
       tags: [],
+      attachments: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -230,8 +242,16 @@ class TasksManager {
 
       if (!error && data) {
         data.tags = []; // Inicializar tags vazio
+        data.attachments = [];
         this.tasks.push(data);
         this.saveTasks();
+
+        // Salvar no cache IndexedDB
+        if (window.cacheManager && window.cacheManager.isReady()) {
+          await window.cacheManager.save(window.cacheManager.stores.TASKS, data);
+          console.log('💾 Tarefa salva no cache');
+        }
+
         return data;
       }
     }
@@ -239,6 +259,13 @@ class TasksManager {
     // Caso contrário, salvar localmente
     this.tasks.push(newTask);
     this.saveTasks();
+
+    // Salvar no cache IndexedDB
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      await window.cacheManager.save(window.cacheManager.stores.TASKS, newTask);
+      console.log('💾 Tarefa salva no cache');
+    }
+
     return newTask;
   }
 
@@ -260,6 +287,13 @@ class TasksManager {
       if (!error && data) {
         this.tasks[taskIndex] = data;
         this.saveTasks();
+
+        // Atualizar no cache IndexedDB
+        if (window.cacheManager && window.cacheManager.isReady()) {
+          await window.cacheManager.save(window.cacheManager.stores.TASKS, data);
+          console.log('💾 Tarefa atualizada no cache');
+        }
+
         return data;
       }
     }
@@ -267,6 +301,13 @@ class TasksManager {
     // Caso contrário, atualizar localmente
     this.tasks[taskIndex] = updatedTask;
     this.saveTasks();
+
+    // Atualizar no cache IndexedDB
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      await window.cacheManager.save(window.cacheManager.stores.TASKS, updatedTask);
+      console.log('💾 Tarefa atualizada no cache');
+    }
+
     return updatedTask;
   }
 
@@ -285,6 +326,13 @@ class TasksManager {
     // Deletar localmente
     this.tasks = this.tasks.filter(t => t.id !== id);
     this.saveTasks();
+
+    // Deletar do cache IndexedDB
+    if (window.cacheManager && window.cacheManager.isReady()) {
+      await window.cacheManager.delete(window.cacheManager.stores.TASKS, id);
+      console.log('💾 Tarefa removida do cache');
+    }
+
     return true;
   }
 
