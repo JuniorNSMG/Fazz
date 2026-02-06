@@ -2410,16 +2410,23 @@ textarea {
 
   .task-meta {
     flex-shrink: 0;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    min-width: 200px;
   }
 
   .task-date {
     min-width: 100px;
   }
 
+  .task-indicator {
+    min-width: 32px;
+    justify-content: center;
+  }
+
   .task-tags {
     margin-top: 0;
     flex-shrink: 0;
+    min-width: 100px;
   }
 }
 
