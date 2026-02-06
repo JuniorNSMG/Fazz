@@ -1,0 +1,974 @@
+/**
+ * Script de Importação da Agenda Financeira
+ *
+ * Como usar:
+ * 1. Abra o Fazz no navegador (https://juniornsmg.github.io/Fazz/)
+ * 2. Faça login
+ * 3. Abra o Console do DevTools (F12 -> Console)
+ * 4. Cole este script completo e pressione Enter
+ * 5. Aguarde a importação finalizar
+ */
+
+(async function importarAgendaFinanceira() {
+    console.log('🚀 Iniciando importação da Agenda Financeira...');
+
+    // Verificar se está no Fazz
+    if (!window.tasksManager) {
+        console.error('❌ Erro: Fazz não está carregado!');
+        console.error('   Abra o Fazz primeiro e faça login.');
+        return;
+    }
+
+    if (!window.supabaseClient || !window.supabaseClient.isAuthenticated()) {
+        console.error('❌ Erro: Você precisa estar logado no Fazz!');
+        return;
+    }
+
+    // Tarefas para importar
+    const tarefas = [
+  {
+    "id": "8fe14f2b-729c-48f8-830a-d6bcee6527b3",
+    "title": "Marcar médico da coluna para mamãe",
+    "date": "2026-01-06",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "47f88f3c-2e8a-4ec2-baf1-90ca80098fd0",
+    "title": "Matias",
+    "date": "2026-01-13",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "0d1b57b5-75d7-40f3-8f6f-4aab0226dae3",
+    "title": "Jomar Banca",
+    "date": "2026-02-08",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "572821fb-97e6-484e-b17b-e9d1d438734e",
+    "title": "Passar fechamento para Jhonatan",
+    "date": "2026-02-08",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "55354ced-a0b7-4cfa-83fb-5fdf6e3bef50",
+    "title": "Ademir",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 600\nResponsável: JUNIOR\nDezembro descontar 100,00 17/11 adiantado",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "ee76c891-5d96-4900-962f-81531d982939",
+    "title": "Aluguel banca",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1755.83\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "eb4c9e6e-f1f2-4614-8810-e9757aeaee8e",
+    "title": "Jomar Borracha",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 13169.83\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "a571265d-0a0e-4388-af1f-e988b88b0cf9",
+    "title": "Condomínio",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 112.80\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "fe270c93-3a7a-4125-beb7-1e4ef714e98a",
+    "title": "Cemig Borracha",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "53954406-96cf-41ad-b14b-1538ca38ad52",
+    "title": "Jomar Borracha",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "8a4facd6-484a-4914-852d-20c3179b2f40",
+    "title": "Pestinha",
+    "date": "2026-02-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1000\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "78ded5f0-dc15-48e2-a25b-4da4917ee9d9",
+    "title": "Achar a previsao de acerto de fim do ano e colocar na planilha automatico.",
+    "date": "2026-01-20",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "36c30ab2-d6c9-48e8-8a32-611e59d98f5d",
+    "title": "Pestinha",
+    "date": "2026-02-14",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1000\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "e570a649-a20f-41af-9825-b4c1cdf7e7fa",
+    "title": "Cruzeiro - America MG starting in 15 minutes às 18:00\n📍 Estádio Governador Magalhães Pinto, Avenida Antonio Abrahão Carã\n🏆 Mineiro",
+    "date": "2026-02-08",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "3aa89828-1c4a-4f9a-b8e4-c13f2e54011c",
+    "title": "Mirassol - Cruzeiro starting in 15 minutes às 19:00\n📍 Estádio José Maria de Campos Maia, Avenida Lauro Luchesi 2650,\n🏆 Serie A",
+    "date": "2026-02-11",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "f3628a10-0fb7-400f-950b-54d319d1356b",
+    "title": "Uniao Recreativa dos Trabalhadores - Cruzeiro starting in 15 mi às 16:30\n📍 Estádio Zama Maciel, Avenida Brasil 1085, Bairro Centro, Patos\n🏆 Mineiro",
+    "date": "2026-02-14",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "929c3250-b566-462b-b287-74cb39899100",
+    "title": "Cruzeiro - Corinthians starting in 15 minutes às 20:00\n📍 Estádio Governador Magalhães Pinto, Avenida Antonio Abrahão Carã\n🏆 Serie A",
+    "date": "2026-02-25",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "1da360c1-7a31-483a-9d48-7cf8f7fe7006",
+    "title": "Flamengo - Cruzeiro starting in 15 minutes às 21:30\n📍 Estadio Jornalista Mário Filho (Maracanã), Rua Professor Eurico\n🏆 Serie A",
+    "date": "2026-03-11",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "7344bf58-4787-4495-81db-f6c5055d180f",
+    "title": "Cruzeiro - Vasco da Gama starting in 15 minutes às 20:30\n📍 Estádio Governador Magalhães Pinto, Avenida Antonio Abrahão Carã\n🏆 Serie A",
+    "date": "2026-03-15",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "fff11638-88f0-4422-8b08-85a1574cdb56",
+    "title": "Athletico Paranaense - Cruzeiro starting in 15 minutes às 19:30\n📍 Estádio Mário Celso Petraglia, Rua Buenos Aires 1260, Água Verd\n🏆 Serie A",
+    "date": "2026-03-18",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "d449e366-ccf0-4f9e-8fa8-3b7f3d870bd7",
+    "title": "Cruzeiro - Santos FC starting in 15 minutes às 16:00\n📍 Estádio Governador Magalhães Pinto, Avenida Antonio Abrahão Carã\n🏆 Serie A",
+    "date": "2026-03-22",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "91de5306-3bf4-4a13-a0b3-004d3ea940de",
+    "title": "Cruzeiro - Vitoria starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-04-01",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "791af65c-c8b6-4df2-8812-a2e18c9e31f8",
+    "title": "Sao Paulo - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-04-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "16bddea7-7357-46d7-a0de-3cb1c792cbd9",
+    "title": "Cruzeiro - Red Bull Bragantino starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-04-12",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "02129263-5be6-48e5-b762-b6e8db8fbee7",
+    "title": "Cruzeiro - Gremio starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-04-19",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "9594fc65-0b49-434a-9d33-58ceb1a89226",
+    "title": "Remo - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-04-26",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "da2b0839-7cd8-4aef-a210-8cf5d7f260ca",
+    "title": "Cruzeiro - Atletico MG starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-05-03",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "f0eecb66-395c-4c08-b054-bb9e89ff98a8",
+    "title": "Bahia - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-05-10",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "cb0d2746-c405-42f6-8395-768bf0318bbf",
+    "title": "Palmeiras - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-05-17",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "fdf132ed-b360-4a7d-83ef-e9b9e7ab6f82",
+    "title": "Cruzeiro - Chapecoense AF starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-05-24",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "23ea3f84-00af-4241-a817-98fc8c21a04f",
+    "title": "Cruzeiro - Fluminense starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-05-31",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "da487b48-6676-49cc-b23e-c2386cfb38e2",
+    "title": "Internacional - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-07-22",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "face4112-c8e7-487f-94c0-f26dae33e9b1",
+    "title": "Cruzeiro - Botafogo RJ starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-07-26",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "f6d19a78-3e68-4efe-826c-b9c26cbcb106",
+    "title": "Coritiba - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-07-29",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "c080a7ca-fa79-477d-9cd6-893897fc5fdb",
+    "title": "Cruzeiro - Mirassol starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-08-09",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "44b8da78-390a-4486-b276-af3552506944",
+    "title": "Corinthians - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-08-16",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "fe1e812a-1c57-45e1-9c45-ea8e88cbe483",
+    "title": "Cruzeiro - Flamengo starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-08-23",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "be6f40db-1bad-4d0b-bd6f-c0c0b6939d81",
+    "title": "Vasco da Gama - Cruzeiro starting in 15 minutes às 13:00\n🏆 Serie A",
+    "date": "2026-08-30",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "c7e0376b-dd70-4a47-bd41-ac1203678a3b",
+    "title": "Cruzeiro - Athletico Paranaense starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-09-06",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "ac2c6cf7-fbc4-4671-ac2c-f8aee9f67e12",
+    "title": "Santos FC - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-09-13",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "c856ba19-7ebf-4c8f-8737-7f5a50d92856",
+    "title": "Vitoria - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-09-20",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "b73b30ab-a512-4e40-8d3c-431d871a6fc5",
+    "title": "Cruzeiro - Sao Paulo starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-10-07",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "859f4aee-e0de-465a-afbb-ecb752286506",
+    "title": "Red Bull Bragantino - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-10-11",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "d68c210b-6a1a-4eb1-9fa9-d927807cd291",
+    "title": "Gremio - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-10-18",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "5920686b-98ea-48c7-b9ae-ba4b1c61bdf3",
+    "title": "Cruzeiro - Remo starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-10-25",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "06930289-393a-4639-84cd-cf634e0371b0",
+    "title": "Atletico MG - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-10-28",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "e118bc34-4e38-4703-9a5e-94e1f46c03e0",
+    "title": "Cruzeiro - Bahia starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-11-04",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "85c0f8ef-ce4b-4f54-b8ef-d9efb347c5c6",
+    "title": "Cruzeiro - Palmeiras starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-11-18",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "85b25154-9deb-4711-b435-1fd4da9855ca",
+    "title": "Chapecoense AF - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-11-22",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "948d84f8-7914-4e6d-9e99-5d7e1abcda97",
+    "title": "Fluminense - Cruzeiro starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-11-29",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "6da50190-ab07-46c6-8a8b-38c709dcbd50",
+    "title": "Cruzeiro - Internacional starting in 15 minutes às 12:00\n🏆 Serie A",
+    "date": "2026-12-02",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\nSincronizado em 02/02/2026 09:03",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "cb79e6ef-37b2-4a72-994b-b0633dac2d32",
+    "title": "INSS Valquiria",
+    "date": "2026-02-15",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 303.60\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "bf3c633c-47ef-4e94-803e-96da556cce03",
+    "title": "Jomar Montagem",
+    "date": "2026-02-16",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 5944.16\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "9b574db7-6bfd-41fa-9d5d-c411463c1634",
+    "title": "Sacar dinheiro do Kotas",
+    "date": "2026-02-16",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "3c57d5f7-43a5-401c-ac74-0655c49c490d",
+    "title": "Planilha Energia Solar",
+    "date": "2026-02-16",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "28d891ea-aafb-4657-b23a-68858e4fed42",
+    "title": "Samuel Munck",
+    "date": "2026-01-21",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 700\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "51680126-15ba-4887-82f3-89d308367a54",
+    "title": "Olist",
+    "date": "2026-02-19",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 319.20\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4b71216f-b868-4ed6-a3f0-b9728341c7cb",
+    "title": "Matias Aluguel Boleto",
+    "date": "2026-02-19",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 5500.00\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "00de3e5c-828b-406e-aa86-4771726be58d",
+    "title": "Amanhã é débito do meu cartão Inter",
+    "date": "2026-02-19",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4e737f7d-1137-491a-80b7-15ba2685e28a",
+    "title": "Cartão Pão de Açúcar",
+    "date": "2026-02-20",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1080.65\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "aa8133dd-a738-4a61-987d-4deeb4c83814",
+    "title": "Cartao Mercado Pago",
+    "date": "2026-02-22",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "6008f0ff-c11c-4179-87dc-3e41978dbcfd",
+    "title": "Vero Mãe",
+    "date": "2026-02-22",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4de8f696-a10a-4787-8916-bba19b8dd179",
+    "title": "Cobrar Ricardo Caixa a reapresentação do cheque 141 984,00 de 22/01 Dev 11",
+    "date": "2026-02-06",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "7490f6ac-d5a5-4a27-8082-894c03ccac09",
+    "title": "Cartão Nubank",
+    "date": "2026-02-26",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "cfa438c4-e48a-4adc-b6f2-b7ff55c685ce",
+    "title": "BTC",
+    "date": "2026-02-02",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "f0c93dcd-67ff-4de0-9c6a-381d03283b86",
+    "title": "Colocar crédito nos celulares",
+    "date": "2026-02-26",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR\n99192-7107 Jr - 99133-5017 Orlando - 98844-2006 Bia - 98844-5127 Mirelle - 99828-0833 Orlando 2",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "3996cf53-1c13-432b-8151-dd2550ea0691",
+    "title": "Recarregar celulares",
+    "date": "2026-02-26",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 100.00\nResponsável: JUNIOR\n99192-7107 Jr - 99133-5017 Orlando - 98844-2006 Bia - 98844-5127 Mirelle - 99828-0833 Orlando 2",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "35efe4d1-7255-4261-a4e6-e46f58a7fb1e",
+    "title": "Matias",
+    "date": "2026-01-27",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "9ac795ae-96bc-43a9-8ac6-5958f5b6034a",
+    "title": "Comissões Valmor ",
+    "date": "2026-02-06",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4d163805-ab19-4927-a043-2317678c237f",
+    "title": "Cemig Casa ",
+    "date": "2026-02-11",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 84.74\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "ab2a55a4-e5d0-4a52-af64-33147fd297c0",
+    "title": "Consuta Pai no Carlos Corradi 23/02 14:00",
+    "date": "2026-02-19",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1200\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "955be3c9-93a9-4526-9448-5e538886e458",
+    "title": "Consulta pai no Carlos Corradi 14:00",
+    "date": "2026-02-23",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 1200\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "436276df-59a8-4903-90a8-db10f443af64",
+    "title": "Pagar aluguel de Walter Lino ",
+    "date": "2026-03-02",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "5c70229b-ef59-492e-8793-c96c4d7812fd",
+    "title": "NF Vuke Transferência",
+    "date": "2026-03-04",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "477b75f5-20fe-44da-9440-1b7509d6cc69",
+    "title": "1 Salário de Pro Labore Jr, Dan e Leo",
+    "date": "2026-03-02",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4829fbb1-29a8-4377-8800-38960d2e9060",
+    "title": "Cemig Borracha",
+    "date": "2026-02-17",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: 10735.44\nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "4a771dfc-de8f-42bf-aa9f-7cfdff9a897d",
+    "title": "Passar dashboard para Leo e Daniela",
+    "date": "2026-02-04",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "075d241e-0d95-4edc-88ed-d2cc26d94564",
+    "title": "Araguaia Júnior",
+    "date": "2026-03-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "eed7e43a-dbbb-4056-8fca-e369193f3bbf",
+    "title": "Anglo",
+    "date": "2026-03-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "6f79965c-f115-4c83-8c6e-add5784c79ad",
+    "title": "Araguaia Pai",
+    "date": "2026-03-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "fad4cb36-6454-4668-89fd-a1c3471e09bb",
+    "title": "Consórcio Leo e Marcos",
+    "date": "2026-03-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  },
+  {
+    "id": "f87c4cf0-9555-4791-9726-36ebd1f319f0",
+    "title": "Espelho",
+    "date": "2026-03-05",
+    "time": null,
+    "notes": "Responsável: JUNIOR\nValor: \nResponsável: JUNIOR",
+    "completed": false,
+    "tags": [],
+    "attachments": [],
+    "recurrence": null
+  }
+];
+
+    console.log(`📊 Total de tarefas a importar: ${tarefas.length}`);
+    console.log('');
+
+    let importadas = 0;
+    let erros = 0;
+
+    for (let i = 0; i < tarefas.length; i++) {
+        const tarefa = tarefas[i];
+        const progresso = ((i + 1) / tarefas.length * 100).toFixed(1);
+
+        try {
+            await window.tasksManager.createTask(tarefa);
+            console.log(`✅ [${progresso}%] ${tarefa.title}`);
+            importadas++;
+        } catch (error) {
+            console.error(`❌ [${progresso}%] Erro ao importar: ${tarefa.title}`, error.message);
+            erros++;
+        }
+
+        // Delay para não sobrecarregar
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.log('');
+    console.log('═'.repeat(60));
+    console.log(`🎉 Importação concluída!`);
+    console.log(`   ✅ ${importadas} tarefas importadas com sucesso`);
+    if (erros > 0) {
+        console.log(`   ❌ ${erros} erros`);
+    }
+    console.log('═'.repeat(60));
+
+    // Recarregar tarefas
+    if (window.uiManager) {
+        await window.tasksManager.loadTasks();
+        window.uiManager.renderTasks();
+        console.log('✅ Lista de tarefas atualizada!');
+    }
+
+    console.log('');
+    console.log('Você pode fechar o console agora.');
+})();
