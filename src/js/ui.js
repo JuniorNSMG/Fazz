@@ -46,6 +46,11 @@ class UIManager {
       this.closeTaskModal();
     });
 
+    // Excluir Tarefa
+    document.getElementById('btnDeleteTask')?.addEventListener('click', () => {
+      this.handleDeleteTask();
+    });
+
     // Overlay do Modal
     this.taskModal?.querySelector('.modal-overlay')?.addEventListener('click', () => {
       this.closeTaskModal();
@@ -469,6 +474,7 @@ class UIManager {
     const taskNotes = document.getElementById('taskNotes');
     const descElement = document.getElementById('recurrenceDescription');
     const btnText = document.getElementById('recurrenceButtonText');
+    const btnDelete = document.getElementById('btnDeleteTask');
 
     if (task) {
       modalTitle.textContent = 'Editar Tarefa';
@@ -476,6 +482,9 @@ class UIManager {
       taskDate.value = task.date;
       taskTime.value = task.time || '';
       taskNotes.value = task.notes || '';
+
+      // Mostrar botão excluir no modo edição
+      if (btnDelete) btnDelete.style.display = 'block';
 
       // Carregar tags da tarefa
       const taskTags = await window.tagsManager.getTaskTags(task.id);
@@ -498,6 +507,9 @@ class UIManager {
       taskDate.value = window.tasksManager.getTodayString();
       taskTime.value = '';
       taskNotes.value = '';
+
+      // Ocultar botão excluir no modo criar
+      if (btnDelete) btnDelete.style.display = 'none';
 
       // Limpar lista de anexos
       this.renderPendingAttachments();
@@ -653,6 +665,29 @@ class UIManager {
       const count = await window.tasksManager.clearCompleted();
       alert(`${count} tarefa(s) removida(s)`);
       this.renderTasks();
+    }
+  }
+
+  // Excluir Tarefa
+  async handleDeleteTask() {
+    if (!this.editingTaskId) {
+      alert('Nenhuma tarefa selecionada para excluir');
+      return;
+    }
+
+    const task = window.tasksManager.tasks.find(t => t.id === this.editingTaskId);
+    const taskTitle = task ? task.title : 'esta tarefa';
+
+    if (confirm(`Deseja realmente excluir "${taskTitle}"? Esta ação não pode ser desfeita.`)) {
+      try {
+        await window.tasksManager.deleteTask(this.editingTaskId);
+        this.closeTaskModal();
+        this.renderTasks();
+        alert('Tarefa excluída com sucesso');
+      } catch (error) {
+        console.error('Erro ao excluir tarefa:', error);
+        alert('Erro ao excluir tarefa. Tente novamente.');
+      }
     }
   }
 
