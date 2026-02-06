@@ -270,6 +270,67 @@ body {
   margin-bottom: var(--spacing-xl);
 }
 
+/* Seção colapsável */
+.tasks-section-collapsible {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-surface);
+  transition: all var(--transition-base);
+}
+
+.section-header-collapsible {
+  padding: var(--spacing-md) var(--spacing-lg);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  background-color: var(--color-background);
+  border-bottom: 1px solid transparent;
+}
+
+.section-header-collapsible:hover {
+  background-color: var(--color-surface);
+}
+
+.section-header-collapsible:active {
+  transform: scale(0.99);
+}
+
+.section-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collapse-icon {
+  transition: transform var(--transition-base);
+  color: var(--color-text-secondary);
+}
+
+.tasks-section-collapsible.collapsed .collapse-icon {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  max-height: 2000px;
+  opacity: 1;
+  transition: max-height var(--transition-base), opacity var(--transition-base);
+  overflow: hidden;
+}
+
+.tasks-section-collapsible.collapsed .collapsible-content {
+  max-height: 0;
+  opacity: 0;
+}
+
+.tasks-section-collapsible.collapsed .section-header-collapsible {
+  border-bottom-color: transparent;
+}
+
+.tasks-section-collapsible:not(.collapsed) .section-header-collapsible {
+  border-bottom-color: var(--color-border-light);
+}
+
 .section-header {
   display: flex;
   align-items: center;
@@ -282,7 +343,8 @@ body {
   color: var(--color-text-primary);
 }
 
-.overdue-section .section-title {
+.overdue-section .section-title,
+.tasks-section-collapsible[data-section-id="overdue"] .section-title {
   color: var(--color-overdue);
 }
 

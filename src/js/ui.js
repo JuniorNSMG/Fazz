@@ -204,24 +204,46 @@ class UIManager {
     }
   }
 
-  // Renderizar Tarefas Atrasadas
+  // Renderizar Tarefas Atrasadas (colapsável)
   renderOverdueTasks(tasks) {
-    const overdueSection = document.getElementById('overdueSection');
-    const overdueList = document.getElementById('overdueList');
+    if (tasks.length === 0) return;
 
-    if (!overdueList) return;
+    const tasksContainer = document.getElementById('tasksContainer');
+    if (!tasksContainer) return;
 
-    if (tasks.length === 0) {
-      overdueSection.style.display = 'none';
-      return;
-    }
+    const section = document.createElement('section');
+    section.className = 'tasks-section tasks-section-collapsible collapsed';
+    section.dataset.sectionId = 'overdue';
 
-    overdueSection.style.display = 'flex';
-    overdueList.innerHTML = '';
+    // Header com botão de expandir/colapsar
+    const header = document.createElement('div');
+    header.className = 'section-header-collapsible';
+    header.innerHTML = `
+      <div class="section-header-content">
+        <h2 class="section-title">Atrasados (${tasks.length})</h2>
+        <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    `;
+
+    header.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+    });
+
+    section.appendChild(header);
+
+    // Lista de tarefas (inicialmente oculta)
+    const tasksElement = document.createElement('div');
+    tasksElement.className = 'tasks-list collapsible-content';
 
     tasks.forEach(task => {
-      overdueList.appendChild(this.createTaskElement(task, true));
+      const taskElement = this.createTaskElement(task);
+      tasksElement.appendChild(taskElement);
     });
+
+    section.appendChild(tasksElement);
+    tasksContainer.appendChild(section);
   }
 
   // Renderizar Seções de Datas
@@ -743,7 +765,8 @@ class UIManager {
         break;
 
       case 'today':
-        // Hoje: Só tarefas de hoje
+        // Hoje: Atrasadas + Hoje
+        this.renderOverdueTasks(grouped.overdue);
         this.renderTodayTasks(grouped.today);
         this.renderCompletedTasks(grouped.completed);
         break;
