@@ -1650,6 +1650,41 @@ textarea {
   font-weight: bold;
 }
 
+/* Tag selector internals */
+.tag-selector-name {
+  flex: 1;
+  cursor: pointer;
+}
+
+.tag-delete-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  color: var(--color-error);
+}
+
+.tag-selector-item:hover .tag-delete-btn {
+  opacity: 1;
+}
+
+.tag-delete-btn:hover {
+  background-color: var(--color-error);
+  color: white;
+  transform: scale(1.1);
+}
+
 .no-tags-message {
   text-align: center;
   padding: var(--spacing-2xl) var(--spacing-lg);

@@ -84,20 +84,12 @@ class UIManager {
       this.closeTagModal();
     });
 
-    document.getElementById('btnCancelTag')?.addEventListener('click', () => {
+    // Botão Salvar (confirma seleção de tags)
+    document.getElementById('btnSaveTagSelection')?.addEventListener('click', () => {
       this.closeTagModal();
     });
 
-    // Toggle new tag form
-    document.getElementById('btnToggleNewTag')?.addEventListener('click', () => {
-      const form = document.getElementById('tagForm');
-      const btn = document.getElementById('btnToggleNewTag');
-      if (form && btn) {
-        form.classList.toggle('hidden');
-        btn.textContent = form.classList.contains('hidden') ? 'Criar Nova Tag' : 'Cancelar';
-      }
-    });
-
+    // Botão Criar Tag (submit do form)
     document.getElementById('tagForm')?.addEventListener('submit', (e) => {
       this.handleTagSubmit(e);
     });
@@ -1034,10 +1026,27 @@ class UIManager {
 
       tagItem.innerHTML = `
         <div class="tag-selector-name">${tag.name}</div>
+        <button type="button" class="tag-delete-btn" data-tag-id="${tag.id}" title="Apagar tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
       `;
 
-      tagItem.addEventListener('click', () => {
+      // Click na tag para selecionar
+      const nameDiv = tagItem.querySelector('.tag-selector-name');
+      nameDiv.addEventListener('click', () => {
         this.toggleTagSelection(tag.id);
+      });
+
+      // Click no botão de delete
+      const deleteBtn = tagItem.querySelector('.tag-delete-btn');
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.handleDeleteTag(tag);
       });
 
       existingTagsList.appendChild(tagItem);
@@ -1110,6 +1119,46 @@ class UIManager {
 
       // Re-renderizar o seletor para mostrar a nova tag
       this.renderExistingTagsSelector();
+    }
+  }
+
+  async handleDeleteTag(tag) {
+    const confirmMsg = `Deseja realmente apagar a tag "${tag.name}"?\n\nEsta ação removerá a tag de todos os compromissos que a utilizam.`;
+
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      // Remover a tag da seleção atual se estiver selecionada
+      const index = this.selectedTags.indexOf(tag.id);
+      if (index > -1) {
+        this.selectedTags.splice(index, 1);
+      }
+
+      // Remover a tag de todas as tarefas que a utilizam
+      const tasks = window.tasksManager.tasks;
+      for (const task of tasks) {
+        if (task.tags && task.tags.includes(tag.id)) {
+          // Remover tag do array de tags da tarefa
+          task.tags = task.tags.filter(tagId => tagId !== tag.id);
+          // Atualizar tarefa no Supabase
+          await window.tasksManager.updateTask(task.id, { tags: task.tags });
+        }
+      }
+
+      // Deletar a tag
+      await window.tagsManager.deleteTag(tag.id);
+
+      // Re-renderizar
+      this.renderExistingTagsSelector();
+      this.renderAvailableTags();
+      this.renderTasks();
+
+      alert(`Tag "${tag.name}" apagada com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao apagar tag:', error);
+      alert('Erro ao apagar tag. Tente novamente.');
     }
   }
 
