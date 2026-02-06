@@ -21,7 +21,8 @@
       "Bash(git pull:*)",
       "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__list_projects",
       "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__apply_migration",
-      "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__execute_sql"
+      "mcp__b1db6274-4cc0-46fc-a0b5-a6504baa78f2__execute_sql",
+      "Bash(/Users/junior/.claude-worktrees/Fazz/crazy-hodgkin/src/css/main.css << 'EOF'\n\n/* ==========================================\n   DESKTOP - LAYOUT HORIZONTAL DOS CARDS\n   ========================================== */\n\n@media \\(min-width: 768px\\) {\n  .task-item {\n    padding: var\\(--spacing-sm\\) var\\(--spacing-md\\);\n    align-items: center;\n  }\n\n  .task-content {\n    flex-direction: row;\n    align-items: center;\n    gap: var\\(--spacing-lg\\);\n  }\n\n  .task-title {\n    flex: 1;\n    min-width: 200px;\n  }\n\n  .task-meta {\n    flex-shrink: 0;\n    gap: var\\(--spacing-lg\\);\n  }\n\n  .task-date {\n    min-width: 100px;\n  }\n\n  .task-tags {\n    margin-top: 0;\n    flex-shrink: 0;\n  }\n}\n\n/* Desktop Large - Mais espaço horizontal */\n@media \\(min-width: 1024px\\) {\n  .task-content {\n    gap: var\\(--spacing-xl\\);\n  }\n\n  .task-title {\n    flex: 1;\n    min-width: 300px;\n  }\n}\nEOF)"
     ]
   }
 }

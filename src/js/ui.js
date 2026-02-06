@@ -14,7 +14,7 @@ class UIManager {
     this.currentAttachments = [];
     this.pendingFiles = [];
     this.currentImageAttachment = null;
-    this.currentView = 'today'; // View padrão: Hoje
+    this.currentView = 'inbox'; // View padrão: Entrada
   }
 
   init() {

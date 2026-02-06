@@ -2386,3 +2386,51 @@ textarea {
     height: 32px;
   }
 }
+
+/* ==========================================
+   DESKTOP - LAYOUT HORIZONTAL DOS CARDS
+   ========================================== */
+
+@media (min-width: 768px) {
+  .task-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    align-items: center;
+  }
+
+  .task-content {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .task-title {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .task-meta {
+    flex-shrink: 0;
+    gap: var(--spacing-lg);
+  }
+
+  .task-date {
+    min-width: 100px;
+  }
+
+  .task-tags {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+}
+
+/* Desktop Large - Mais espaço horizontal */
+@media (min-width: 1024px) {
+  .task-content {
+    gap: var(--spacing-xl);
+  }
+
+  .task-title {
+    flex: 1;
+    min-width: 300px;
+  }
+}
