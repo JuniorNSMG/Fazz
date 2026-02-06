@@ -2311,14 +2311,14 @@ textarea {
   transform: scale(1.15);
 }
 
-.color-btn[data-color="blue"] { background-color: #4A90E2; }
-.color-btn[data-color="green"] { background-color: #4CAF50; }
-.color-btn[data-color="orange"] { background-color: #FF9800; }
-.color-btn[data-color="purple"] { background-color: #9C27B0; }
-.color-btn[data-color="pink"] { background-color: #E91E63; }
-.color-btn[data-color="teal"] { background-color: #009688; }
-.color-btn[data-color="yellow"] { background-color: #FFC107; }
-.color-btn[data-color="red"] { background-color: #F44336; }
+.color-btn[data-color="blue"] { background-color: #BBDEFB; }
+.color-btn[data-color="green"] { background-color: #C8E6C9; }
+.color-btn[data-color="orange"] { background-color: #FFE0B2; }
+.color-btn[data-color="purple"] { background-color: #E1BEE7; }
+.color-btn[data-color="pink"] { background-color: #F8BBD0; }
+.color-btn[data-color="teal"] { background-color: #B2DFDB; }
+.color-btn[data-color="yellow"] { background-color: #FFF9C4; }
+.color-btn[data-color="red"] { background-color: #FFCDD2; }
 
 /* Weekdays grid */
 .weekdays-grid {
