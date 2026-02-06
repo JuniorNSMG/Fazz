@@ -769,34 +769,71 @@ class UIManager {
     }
   }
 
-  // Renderizar apenas tarefas de amanhã
+  // Calcular quantos dias mostrar na entrada baseado no dia da semana
+  getInboxDaysToShow() {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+
+    // Domingo (0) a Quinta (4): hoje + 1 dia
+    // Sexta (5): hoje + 3 dias
+    // Sábado (6): hoje + 2 dias
+    if (dayOfWeek >= 0 && dayOfWeek <= 4) {
+      return 1; // Domingo a Quinta: mostrar hoje + 1 dia
+    } else if (dayOfWeek === 5) {
+      return 3; // Sexta: mostrar hoje + 3 dias
+    } else {
+      return 2; // Sábado: mostrar hoje + 2 dias
+    }
+  }
+
+  // Renderizar tarefas dos próximos dias (baseado no dia da semana)
   renderTomorrowTasks(upcomingTasks) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = window.tasksManager.formatDateToString(tomorrow);
+    const daysToShow = this.getInboxDaysToShow();
+    const today = new Date();
+    const tasksContainer = document.getElementById('tasksContainer');
 
-    const tomorrowTasksMap = upcomingTasks[tomorrowStr] || [];
+    // Coletar todas as tarefas dos próximos N dias
+    let allTasks = [];
 
-    if (tomorrowTasksMap.length === 0) return;
+    for (let i = 1; i <= daysToShow; i++) {
+      const targetDate = new Date(today);
+      targetDate.setDate(targetDate.getDate() + i);
+      const dateStr = window.tasksManager.formatDateToString(targetDate);
 
+      const tasksForDay = upcomingTasks[dateStr] || [];
+      allTasks = allTasks.concat(tasksForDay);
+    }
+
+    if (allTasks.length === 0) return;
+
+    // Criar seção
     const section = document.createElement('section');
     section.className = 'tasks-section';
 
     const titleElement = document.createElement('h2');
     titleElement.className = 'section-title';
-    titleElement.textContent = `Amanhã (${tomorrowTasksMap.length})`;
+
+    // Definir título baseado nos dias
+    let titleText = '';
+    if (daysToShow === 1) {
+      titleText = `Amanhã (${allTasks.length})`;
+    } else {
+      titleText = `Próximos ${daysToShow} dias (${allTasks.length})`;
+    }
+
+    titleElement.textContent = titleText;
     section.appendChild(titleElement);
 
     const tasksElement = document.createElement('div');
     tasksElement.className = 'tasks-list';
 
-    tomorrowTasksMap.forEach(task => {
+    allTasks.forEach(task => {
       const taskElement = this.createTaskElement(task);
       tasksElement.appendChild(taskElement);
     });
 
     section.appendChild(tasksElement);
-    document.getElementById('tasksContainer')?.appendChild(section);
+    tasksContainer?.appendChild(section);
   }
 
   // Renderizar tarefas de hoje
