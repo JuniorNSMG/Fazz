@@ -136,7 +136,7 @@
         // Usar proxy para acessar HTTP de HTTPS
         function buildUrl(endpoint) {
             const fullUrl = backendUrl + endpoint;
-            return `https://api.allorigins.win/raw?url=${encodeURIComponent(fullUrl)}`;
+            return `https://corsproxy.io/?${encodeURIComponent(fullUrl)}`;
         }
 
         function showStatus(message, type) {

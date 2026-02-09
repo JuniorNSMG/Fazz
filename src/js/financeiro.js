@@ -21,8 +21,9 @@ class FinanceiroManager {
     const fullUrl = `${this.backendUrl}${endpoint}`;
 
     if (this.useProxy) {
-      // AllOrigins: proxy gratuito que permite HTTP de HTTPS
-      return `https://api.allorigins.win/raw?url=${encodeURIComponent(fullUrl)}`;
+      // Usar proxy CORS público
+      // Opção 1: corsproxy.io (mais estável)
+      return `https://corsproxy.io/?${encodeURIComponent(fullUrl)}`;
     }
 
     return fullUrl;
