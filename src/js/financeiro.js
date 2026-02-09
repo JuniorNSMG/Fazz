@@ -7,10 +7,16 @@ class FinanceiroManager {
     // Backend HTTP original
     this.backendUrl = 'http://juniornsmg.ddns.net:5000';
 
-    // Proxy CORS para acessar HTTP de HTTPS (GitHub Pages)
-    this.useProxy = true;
+    // ATENÇÃO: Para usar o Fazz no GitHub Pages (HTTPS), você precisa:
+    // 1. Criar um Cloudflare Worker (gratuito) - veja PROXY_SETUP.md
+    // 2. Ou rodar localmente: python3 -m http.server 8080
+    //
+    // Por enquanto, vamos desabilitar e avisar o usuário
+    this.useProxy = false;
 
-    console.log('💰 FinanceiroManager inicializado com proxy CORS');
+    console.log('💰 FinanceiroManager inicializado');
+    console.log('⚠️ AVISO: Backend HTTP só funciona localmente');
+    console.log('📖 Para usar no GitHub Pages, configure um proxy - veja PROXY_SETUP.md');
 
     this.titulosPagar = [];
     this.lastFetchDate = null;
@@ -21,9 +27,11 @@ class FinanceiroManager {
     const fullUrl = `${this.backendUrl}${endpoint}`;
 
     if (this.useProxy) {
-      // Usar proxy CORS público
-      // Opção 1: corsproxy.io (mais estável)
-      return `https://corsproxy.io/?${encodeURIComponent(fullUrl)}`;
+      // Configure seu Cloudflare Worker aqui:
+      // return `https://SEU-WORKER.workers.dev/?url=${encodeURIComponent(fullUrl)}`;
+
+      console.error('💰 ❌ Proxy não configurado! Veja PROXY_SETUP.md');
+      return fullUrl;
     }
 
     return fullUrl;
