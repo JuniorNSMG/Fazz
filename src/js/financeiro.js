@@ -4,21 +4,28 @@
 
 class FinanceiroManager {
   constructor() {
-    // Detectar se está em HTTPS (GitHub Pages) ou HTTP (local)
-    const isHTTPS = window.location.protocol === 'https:';
+    // Backend HTTP original
+    this.backendUrl = 'http://juniornsmg.ddns.net:5000';
 
-    if (isHTTPS) {
-      // Usar proxy CORS para converter HTTP → HTTPS
-      this.baseUrl = 'https://corsproxy.io/?http://juniornsmg.ddns.net:5000';
-      console.log('💰 Usando proxy CORS para GitHub Pages');
-    } else {
-      // Acesso direto quando rodando localmente
-      this.baseUrl = 'http://juniornsmg.ddns.net:5000';
-      console.log('💰 Acesso direto ao backend (local)');
-    }
+    // Proxy CORS para acessar HTTP de HTTPS (GitHub Pages)
+    this.useProxy = true;
+
+    console.log('💰 FinanceiroManager inicializado com proxy CORS');
 
     this.titulosPagar = [];
     this.lastFetchDate = null;
+  }
+
+  // Construir URL com proxy se necessário
+  buildUrl(endpoint) {
+    const fullUrl = `${this.backendUrl}${endpoint}`;
+
+    if (this.useProxy) {
+      // AllOrigins: proxy gratuito que permite HTTP de HTTPS
+      return `https://api.allorigins.win/raw?url=${encodeURIComponent(fullUrl)}`;
+    }
+
+    return fullUrl;
   }
 
   // Buscar títulos a pagar do período
@@ -29,7 +36,9 @@ class FinanceiroManager {
         dataFim: this.formatDate(dataFim)
       });
 
-      const url = `${this.baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`;
+      const endpoint = `/api/detalhes-titulos-pagar-periodo?${params}`;
+      const url = this.buildUrl(endpoint);
+
       console.log('💰 Buscando títulos:', url);
 
       const response = await fetch(url);
@@ -118,9 +127,10 @@ class FinanceiroManager {
     if (!titulo.CHAVE_VINCULACAO) return false;
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/api/arquivos-financeiros/verificar-arquivo-lancamento?chave=${encodeURIComponent(titulo.CHAVE_VINCULACAO)}`
-      );
+      const endpoint = `/api/arquivos-financeiros/verificar-arquivo-lancamento?chave=${encodeURIComponent(titulo.CHAVE_VINCULACAO)}`;
+      const url = this.buildUrl(endpoint);
+
+      const response = await fetch(url);
 
       if (!response.ok) return false;
 
@@ -226,7 +236,10 @@ class FinanceiroManager {
 
   // Marcar lançamento individual como concluído
   async marcarLancamentoConcluido(idLancamento) {
-    const response = await fetch(`${this.baseUrl}/api/lancamentos/${idLancamento}/concluir`, {
+    const endpoint = `/api/lancamentos/${idLancamento}/concluir`;
+    const url = this.buildUrl(endpoint);
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -258,7 +271,8 @@ class FinanceiroManager {
 
   // Obter URL do arquivo vinculado
   getArquivoUrl(chave) {
-    return `${this.baseUrl}/api/arquivos-financeiros/download?chave=${encodeURIComponent(chave)}`;
+    const endpoint = `/api/arquivos-financeiros/download?chave=${encodeURIComponent(chave)}`;
+    return this.buildUrl(endpoint);
   }
 
   // Sincronizar títulos com período
