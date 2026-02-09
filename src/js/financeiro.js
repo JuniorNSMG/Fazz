@@ -4,7 +4,19 @@
 
 class FinanceiroManager {
   constructor() {
-    this.baseUrl = 'http://juniornsmg.ddns.net:5000';
+    // Detectar se está em HTTPS (GitHub Pages) ou HTTP (local)
+    const isHTTPS = window.location.protocol === 'https:';
+
+    if (isHTTPS) {
+      // Usar proxy CORS para converter HTTP → HTTPS
+      this.baseUrl = 'https://corsproxy.io/?http://juniornsmg.ddns.net:5000';
+      console.log('💰 Usando proxy CORS para GitHub Pages');
+    } else {
+      // Acesso direto quando rodando localmente
+      this.baseUrl = 'http://juniornsmg.ddns.net:5000';
+      console.log('💰 Acesso direto ao backend (local)');
+    }
+
     this.titulosPagar = [];
     this.lastFetchDate = null;
   }

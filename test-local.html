@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Local - API Financeira</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .titulo-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-left: 3px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .titulo-header {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .titulo-info {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .badge-a {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .badge-b {
+            background: #f5f5f5;
+            color: #757575;
+        }
+        .badge-arquivo {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Local - API Financeira</h1>
+
+        <div class="alert alert-warning">
+            <strong>⚠️ Problema Detectado: Mixed Content</strong><br>
+            O GitHub Pages usa HTTPS, mas sua API está em HTTP. O navegador bloqueia por segurança.<br>
+            <strong>Este arquivo funciona apenas localmente (file:// ou http://localhost)</strong>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>📋 Para testar localmente:</strong><br>
+            1. Baixe este arquivo: <code>test-local.html</code><br>
+            2. Abra diretamente no navegador (clique duplo)<br>
+            3. Ou use: <code>python3 -m http.server 8000</code> e acesse <code>http://localhost:8000/test-local.html</code>
+        </div>
+
+        <p><strong>Backend:</strong> http://juniornsmg.ddns.net:5000</p>
+
+        <div>
+            <button onclick="testarConexao()">1. Testar Conexão</button>
+            <button onclick="buscarTitulos()">2. Buscar Títulos</button>
+            <button onclick="testarConsolidacao()">3. Testar Consolidação</button>
+            <button onclick="limparResultados()">Limpar</button>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Títulos Encontrados</h2>
+        <div id="titulosContainer"></div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 Soluções Permanentes</h2>
+        <h3>Opção 1: Adicionar HTTPS ao servidor (Recomendado)</h3>
+        <p>Configure certificado SSL no seu servidor usando Let's Encrypt:</p>
+        <pre>sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d juniornsmg.ddns.net</pre>
+
+        <h3>Opção 2: Usar proxy CORS</h3>
+        <p>Adicionar um proxy intermediário que aceita HTTPS</p>
+
+        <h3>Opção 3: Desabilitar Mixed Content (Temporário)</h3>
+        <p>No Chrome: Clique no cadeado → Configurações do site → Conteúdo inseguro → Permitir</p>
+    </div>
+
+    <script>
+        const baseUrl = 'http://juniornsmg.ddns.net:5000';
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function showResult(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            resultDiv.style.display = 'block';
+        }
+
+        function limparResultados() {
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('titulosContainer').innerHTML = '';
+        }
+
+        async function testarConexao() {
+            showStatus('⏳ Testando conexão com o servidor...', 'loading');
+
+            try {
+                const response = await fetch(`${baseUrl}/api/detalhes-titulos-pagar-periodo`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                showStatus(`Servidor respondeu: ${response.status} ${response.statusText}`,
+                    response.status === 302 ? 'error' : 'success');
+
+                if (response.status === 302) {
+                    showResult({
+                        status: response.status,
+                        mensagem: 'Redirecionado para login - autenticação necessária',
+                        location: response.headers.get('Location')
+                    });
+                }
+            } catch (error) {
+                showStatus(`❌ Erro de conexão: ${error.message}`, 'error');
+                showResult({ error: error.message, stack: error.stack });
+            }
+        }
+
+        async function buscarTitulos() {
+            showStatus('⏳ Buscando títulos a pagar...', 'loading');
+
+            const dataInicio = new Date();
+            dataInicio.setDate(dataInicio.getDate() - 30);
+
+            const dataFim = new Date();
+            dataFim.setDate(dataFim.getDate() + 90);
+
+            const params = new URLSearchParams({
+                dataInicio: formatDate(dataInicio),
+                dataFim: formatDate(dataFim)
+            });
+
+            const url = `${baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`;
+            console.log('Buscando:', url);
+
+            try {
+                const response = await fetch(url, {
+                    credentials: 'include'
+                });
+
+                console.log('Response:', response.status, response.statusText);
+
+                if (response.status === 302) {
+                    showStatus('❌ Redirecionado para login - autenticação necessária', 'error');
+                    showResult({
+                        erro: 'Não autenticado',
+                        mensagem: 'A API requer login antes de buscar títulos',
+                        solucao: 'Faça login na API primeiro'
+                    });
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Dados:', data);
+
+                if (!data || (Array.isArray(data) && data.length === 0)) {
+                    showStatus('⚠️ Nenhum título encontrado no período', 'error');
+                    showResult({
+                        mensagem: 'Array vazio ou nenhum resultado',
+                        periodo: {
+                            dataInicio: formatDate(dataInicio),
+                            dataFim: formatDate(dataFim)
+                        }
+                    });
+                    return;
+                }
+
+                showStatus(`✅ ${data.length} título(s) encontrado(s)!`, 'success');
+                showResult(data);
+                renderTitulos(data);
+
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                showResult({
+                    error: error.message,
+                    url: url,
+                    stack: error.stack
+                });
+            }
+        }
+
+        async function testarConsolidacao() {
+            showStatus('⏳ Testando lógica de consolidação...', 'loading');
+
+            const dataInicio = new Date();
+            dataInicio.setDate(dataInicio.getDate() - 30);
+
+            const dataFim = new Date();
+            dataFim.setDate(dataFim.getDate() + 90);
+
+            const params = new URLSearchParams({
+                dataInicio: formatDate(dataInicio),
+                dataFim: formatDate(dataFim)
+            });
+
+            try {
+                const response = await fetch(`${baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const titulos = await response.json();
+
+                if (!titulos || titulos.length === 0) {
+                    showStatus('⚠️ Nenhum título para consolidar', 'error');
+                    return;
+                }
+
+                const grupos = new Map();
+
+                for (const titulo of titulos) {
+                    if (titulo.CHAVE_VINCULACAO) {
+                        const chaveBase = extrairChaveBase(titulo.CHAVE_VINCULACAO);
+                        if (!grupos.has(chaveBase)) {
+                            grupos.set(chaveBase, []);
+                        }
+                        grupos.get(chaveBase).push(titulo);
+                    }
+                }
+
+                const consolidados = [];
+                for (const [chave, grupo] of grupos) {
+                    if (grupo.length > 1) {
+                        consolidados.push({
+                            chave,
+                            quantidade: grupo.length,
+                            valorTotal: grupo.reduce((sum, t) => sum + parseFloat(t.VALOR || 0), 0),
+                            titulos: grupo
+                        });
+                    }
+                }
+
+                showStatus(`✅ ${consolidados.length} notinha(s) consolidada(s)`, 'success');
+                showResult({
+                    totalTitulos: titulos.length,
+                    notinhasConsolidadas: consolidados.length,
+                    detalhes: consolidados
+                });
+
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                showResult({ error: error.message, stack: error.stack });
+            }
+        }
+
+        function renderTitulos(titulos) {
+            const container = document.getElementById('titulosContainer');
+            container.innerHTML = '';
+
+            if (!titulos || titulos.length === 0) {
+                container.innerHTML = '<p style="color: #999;">Nenhum título para exibir</p>';
+                return;
+            }
+
+            titulos.forEach(titulo => {
+                const card = document.createElement('div');
+                card.className = 'titulo-card';
+
+                const badges = [];
+                if (titulo.STATUS) {
+                    badges.push(`<span class="badge badge-${titulo.STATUS.toLowerCase()}">${titulo.STATUS === 'A' ? 'Confirmado' : 'Previsto'}</span>`);
+                }
+                if (titulo.CHAVE_VINCULACAO) {
+                    badges.push(`<span class="badge badge-arquivo">📎 Arquivo</span>`);
+                }
+
+                card.innerHTML = `
+                    <div class="titulo-header">
+                        ${titulo.FORNECEDOR || 'Sem fornecedor'}
+                        ${badges.join('')}
+                    </div>
+                    <div class="titulo-info">
+                        <span><strong>Valor:</strong> ${formatarValor(titulo.VALOR)}</span>
+                        <span><strong>Vencimento:</strong> ${formatarData(titulo.DATA_VENCIMENTO)}</span>
+                    </div>
+                    ${titulo.DOCUMENTO ? `<div class="titulo-info"><span><strong>Documento:</strong> ${titulo.DOCUMENTO}</span></div>` : ''}
+                    ${titulo.CHAVE_VINCULACAO ? `<div class="titulo-info"><span style="font-size: 11px; color: #999;"><strong>Chave:</strong> ${titulo.CHAVE_VINCULACAO}</span></div>` : ''}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatarData(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function formatarValor(valor) {
+            if (!valor) return 'R$ 0,00';
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        function extrairChaveBase(chaveCompleta) {
+            const partes = chaveCompleta.split('|');
+            return partes.slice(0, 5).join('|');
+        }
+
+        window.addEventListener('load', () => {
+            showStatus('✅ Pronto! Arquivo local carregado sem restrições HTTPS.', 'success');
+        });
+    </script>
+</body>
+</html>
