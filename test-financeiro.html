@@ -131,7 +131,13 @@
     </div>
 
     <script>
-        const baseUrl = 'http://juniornsmg.ddns.net:5000';
+        const backendUrl = 'http://juniornsmg.ddns.net:5000';
+
+        // Usar proxy para acessar HTTP de HTTPS
+        function buildUrl(endpoint) {
+            const fullUrl = backendUrl + endpoint;
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(fullUrl)}`;
+        }
 
         function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
@@ -156,8 +162,9 @@
             showStatus('⏳ Testando conexão com o servidor...', 'loading');
 
             try {
-                const response = await fetch(`${baseUrl}/api/detalhes-titulos-pagar-periodo`, {
-                    method: 'HEAD'
+                const url = buildUrl('/api/detalhes-titulos-pagar-periodo');
+                const response = await fetch(url, {
+                    method: 'GET'
                 });
 
                 if (response.ok || response.status === 404 || response.status === 400) {
@@ -186,10 +193,12 @@
                 dataFim: formatDate(dataFim)
             });
 
-            console.log('Buscando:', `${baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`);
+            const endpoint = `/api/detalhes-titulos-pagar-periodo?${params}`;
+            const url = buildUrl(endpoint);
+            console.log('Buscando:', url);
 
             try {
-                const response = await fetch(`${baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`);
+                const response = await fetch(url);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -233,7 +242,10 @@
             });
 
             try {
-                const response = await fetch(`${baseUrl}/api/detalhes-titulos-pagar-periodo?${params}`);
+                const endpoint = `/api/detalhes-titulos-pagar-periodo?${params}`;
+                const url = buildUrl(endpoint);
+
+                const response = await fetch(url);
                 const titulos = await response.json();
 
                 if (!titulos || titulos.length === 0) {
