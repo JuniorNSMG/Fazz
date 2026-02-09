@@ -367,17 +367,38 @@ class UIManager {
       li.classList.add('overdue');
     }
 
-    // Checkbox
+    // Identificar se é título financeiro
+    const isTituloFinanceiro = task.type === 'titulo_pagar';
+
+    if (isTituloFinanceiro) {
+      li.classList.add('task-financeiro');
+    }
+
+    // Checkbox (ou botão "Concluído" para títulos)
     const checkbox = document.createElement('div');
-    checkbox.className = 'task-checkbox';
-    checkbox.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-    `;
+    if (isTituloFinanceiro) {
+      checkbox.className = 'task-action-btn';
+      checkbox.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      `;
+      checkbox.title = 'Marcar como pago';
+    } else {
+      checkbox.className = 'task-checkbox';
+      checkbox.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      `;
+    }
     checkbox.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.handleToggleComplete(task.id);
+      if (isTituloFinanceiro) {
+        this.handleMarcarTituloConcluido(task);
+      } else {
+        this.handleToggleComplete(task.id);
+      }
     });
 
     // Content
@@ -388,19 +409,77 @@ class UIManager {
     title.className = 'task-title';
     title.textContent = task.title;
 
+    // Se for título financeiro, adicionar valor
+    if (isTituloFinanceiro && task.financeiro) {
+      const valorSpan = document.createElement('span');
+      valorSpan.className = 'task-valor-destaque';
+      valorSpan.textContent = ` ${window.financeiroManager.formatarValor(task.financeiro.valor)}`;
+      title.appendChild(valorSpan);
+    }
+
     content.appendChild(title);
 
-    // Tags (se houver)
-    if (task.tags && task.tags.length > 0) {
+    // Badges e Tags
+    const badgesContainer = document.createElement('div');
+    badgesContainer.className = 'task-badges-tags';
+
+    // Badges para títulos financeiros
+    if (isTituloFinanceiro && task.financeiro) {
+      const badges = document.createElement('div');
+      badges.className = 'task-badges';
+
+      // Badge de status (A ou B)
+      const statusBadge = document.createElement('span');
+      statusBadge.className = `badge badge-status badge-status-${task.financeiro.status.toLowerCase()}`;
+      statusBadge.textContent = task.financeiro.status === 'A' ? 'Confirmado' : 'Previsto';
+      badges.appendChild(statusBadge);
+
+      // Badge de arquivo vinculado
+      if (task.financeiro.temArquivo) {
+        const arquivoBadge = document.createElement('span');
+        arquivoBadge.className = 'badge badge-arquivo';
+        arquivoBadge.innerHTML = `
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+          </svg>
+          Anexo
+        `;
+        arquivoBadge.title = 'Arquivo vinculado';
+        arquivoBadge.style.cursor = 'pointer';
+        arquivoBadge.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.abrirArquivoFinanceiro(task.financeiro.chave);
+        });
+        badges.appendChild(arquivoBadge);
+      }
+
+      // Badge de consolidado (notinha com múltiplos lançamentos)
+      if (task.financeiro.consolidado) {
+        const consolidadoBadge = document.createElement('span');
+        consolidadoBadge.className = 'badge badge-consolidado';
+        consolidadoBadge.textContent = `${task.financeiro.lancamentos.length} lançamentos`;
+        consolidadoBadge.title = 'Notinha consolidada';
+        badges.appendChild(consolidadoBadge);
+      }
+
+      badgesContainer.appendChild(badges);
+    }
+
+    // Tags (se houver) - apenas para tarefas pessoais
+    if (!isTituloFinanceiro && task.tags && task.tags.length > 0) {
       console.log(`🏷️ Renderizando ${task.tags.length} tag(s) para tarefa "${task.title}"`);
       const tagsContainer = document.createElement('div');
       tagsContainer.className = 'task-tags';
       task.tags.forEach(tag => {
         tagsContainer.appendChild(this.createTagElement(tag, false));
       });
-      content.appendChild(tagsContainer);
-    } else {
+      badgesContainer.appendChild(tagsContainer);
+    } else if (!isTituloFinanceiro) {
       console.log(`⚠️ Tarefa "${task.title}" não tem tags (tags:`, task.tags, ')');
+    }
+
+    if (badgesContainer.children.length > 0) {
+      content.appendChild(badgesContainer);
     }
 
     const meta = document.createElement('div');
@@ -478,11 +557,20 @@ class UIManager {
     li.appendChild(checkbox);
     li.appendChild(content);
 
-    // Click para editar
-    li.addEventListener('click', (e) => {
-      if (e.target === checkbox || e.target.closest('.task-checkbox')) return;
-      this.openTaskModal(task);
-    });
+    // Click para editar (apenas tarefas pessoais)
+    if (!isTituloFinanceiro) {
+      li.addEventListener('click', (e) => {
+        if (e.target === checkbox || e.target.closest('.task-checkbox')) return;
+        this.openTaskModal(task);
+      });
+    } else {
+      // Títulos financeiros: mostrar informações detalhadas
+      li.addEventListener('click', (e) => {
+        if (e.target === checkbox || e.target.closest('.task-action-btn')) return;
+        if (e.target.closest('.badge-arquivo')) return; // Não interferir com click no anexo
+        this.mostrarDetalhesTitulo(task);
+      });
+    }
 
     return li;
   }
@@ -1707,6 +1795,73 @@ class UIManager {
     descElement.textContent = description;
     descElement.classList.remove('hidden');
     btnText.textContent = 'Editar Recorrência';
+  }
+
+  // ==========================================
+  // TÍTULOS FINANCEIROS
+  // ==========================================
+
+  // Marcar título financeiro como concluído (pago)
+  async handleMarcarTituloConcluido(task) {
+    if (!task.financeiro) return;
+
+    const confirmMsg = task.financeiro.consolidado
+      ? `Marcar notinha com ${task.financeiro.lancamentos.length} lançamentos como paga?\n\nValor total: ${window.financeiroManager.formatarValor(task.financeiro.valor)}`
+      : `Marcar título como pago?\n\nFornecedor: ${task.financeiro.fornecedor}\nValor: ${window.financeiroManager.formatarValor(task.financeiro.valor)}`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const sucesso = await window.financeiroManager.marcarComoConcluido(task);
+
+      if (sucesso) {
+        // Recarregar tarefas para refletir mudança
+        await window.tasksManager.loadTasks();
+        this.renderTasks();
+        alert('Título marcado como pago com sucesso!');
+      } else {
+        alert('Erro ao marcar título como pago. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao marcar título como concluído:', error);
+      alert('Erro ao marcar título como pago. Verifique a conexão com o servidor.');
+    }
+  }
+
+  // Abrir arquivo financeiro vinculado
+  abrirArquivoFinanceiro(chave) {
+    if (!chave) return;
+
+    const url = window.financeiroManager.getArquivoUrl(chave);
+    window.open(url, '_blank');
+  }
+
+  // Mostrar detalhes do título financeiro
+  mostrarDetalhesTitulo(task) {
+    if (!task.financeiro) return;
+
+    const f = task.financeiro;
+    let detalhes = `Fornecedor: ${f.fornecedor}\n`;
+    detalhes += `Valor: ${window.financeiroManager.formatarValor(f.valor)}\n`;
+    detalhes += `Status: ${f.status === 'A' ? 'Confirmado' : 'Previsto'}\n`;
+    detalhes += `Vencimento: ${window.tasksManager.formatDate(task.dueDate)}\n`;
+
+    if (f.documento) {
+      detalhes += `Documento: ${f.documento}\n`;
+    }
+
+    if (f.consolidado) {
+      detalhes += `\n📎 Notinha consolidada com ${f.lancamentos.length} lançamentos:\n`;
+      f.detalhes.forEach((d, i) => {
+        detalhes += `  ${i + 1}. ${window.financeiroManager.formatarValor(d.valor)} - ${d.status} (Doc: ${d.documento || 'N/A'})\n`;
+      });
+    }
+
+    if (f.temArquivo) {
+      detalhes += `\n📎 Arquivo vinculado disponível`;
+    }
+
+    alert(detalhes);
   }
 }
 

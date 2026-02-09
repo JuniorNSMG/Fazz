@@ -10,6 +10,13 @@ class FazzApp {
   async init() {
     console.log('🚀 Inicializando Fazz...');
 
+    // Verificar se financeiroManager está disponível
+    if (window.financeiroManager) {
+      console.log('💰 FinanceiroManager detectado!');
+    } else {
+      console.error('💰 ❌ FinanceiroManager NÃO encontrado! Integração financeira não funcionará.');
+    }
+
     try {
       // 1. Inicializar Supabase
       await window.supabaseClient.init();

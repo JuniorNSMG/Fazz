@@ -49,6 +49,10 @@ class TasksManager {
 
         this.tasks = data;
         this.saveTasks(); // Salvar localmente como backup
+
+        // Carregar títulos financeiros e mesclar
+        await this.loadTitulosFinanceiros();
+
         return this.tasks;
       }
     }
@@ -64,7 +68,37 @@ class TasksManager {
       }
     }
 
+    // Carregar títulos financeiros e mesclar
+    await this.loadTitulosFinanceiros();
+
     return this.tasks;
+  }
+
+  // Carregar títulos financeiros e mesclar com tarefas
+  async loadTitulosFinanceiros() {
+    if (!window.financeiroManager) return;
+
+    // Buscar títulos dos últimos 30 dias até próximos 90 dias
+    const dataInicio = new Date();
+    dataInicio.setDate(dataInicio.getDate() - 30);
+
+    const dataFim = new Date();
+    dataFim.setDate(dataFim.getDate() + 90);
+
+    try {
+      console.log('💰 Carregando títulos financeiros...');
+      const titulos = await window.financeiroManager.fetchTitulosPagar(dataInicio, dataFim);
+
+      // Remover títulos financeiros antigos das tarefas
+      this.tasks = this.tasks.filter(t => t.type !== 'titulo_pagar');
+
+      // Adicionar novos títulos
+      this.tasks = [...this.tasks, ...titulos];
+
+      console.log(`💰 ${titulos.length} títulos financeiros carregados`);
+    } catch (error) {
+      console.error('Erro ao carregar títulos financeiros:', error);
+    }
   }
 
   // Salvar tarefas no localStorage
